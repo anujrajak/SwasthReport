@@ -1,0 +1,33 @@
+{
+  "version": 3,
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge/chunks/Pathology_patho-client_0d05853e._.js",
+        "server/edge/chunks/[root-of-the-server]__7f997f69._.js",
+        "server/edge/chunks/turbopack-Pathology_patho-client_edge-wrapper_2aa396e9.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/dashboard(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/dashboard/:path*"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "development",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "07GVxX879Osav8E00wSN5c3gB5U3rbUWn4EzRted0dM=",
+        "__NEXT_PREVIEW_MODE_ID": "48e77d2ff54ee5f14ca2566ce95d5ad0",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "69b1e54ba43c8e34df273f798f0f731171c1165d9931472ccf7ccccc9b59041c",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "c3346d3f75348a78b5a537f11168a9cba8e9cb794d74229bc8cd71b1bf2f340c"
+      }
+    }
+  },
+  "sortedMiddleware": [
+    "/"
+  ],
+  "functions": {}
+}

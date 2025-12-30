@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 22, "column": 0}, "map": {"version":3,"sources":["file:///Users/anujrajak/Learn/Pathology/patho-client/app/dashboard/page.tsx"],"sourcesContent":["export default function DashboardPage() {\n  return (\n    <>\n      <div className=\"grid auto-rows-min gap-4 md:grid-cols-3\">\n        <div className=\"aspect-video rounded-xl bg-muted/50\" />\n        <div className=\"aspect-video rounded-xl bg-muted/50\" />\n        <div className=\"aspect-video rounded-xl bg-muted/50\" />\n      </div>\n      <div className=\"min-h-screen flex-1 rounded-xl bg-muted/50 md:min-h-min\" />\n    </>\n  );\n}\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE;;0BACE,+aAAC;gBAAI,WAAU;;kCACb,+aAAC;wBAAI,WAAU;;;;;;kCACf,+aAAC;wBAAI,WAAU;;;;;;kCACf,+aAAC;wBAAI,WAAU;;;;;;;;;;;;0BAEjB,+aAAC;gBAAI,WAAU;;;;;;;;AAGrB"}}]
+}

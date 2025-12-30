@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 22, "column": 0}, "map": {"version":3,"sources":["file:///Users/anujrajak/Learn/Pathology/patho-client/app/dashboard/lab-details/page.tsx"],"sourcesContent":["export default function page() {\n  return <div>lab details</div>;\n}\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBAAO,+aAAC;kBAAI;;;;;;AACd"}}]
+}

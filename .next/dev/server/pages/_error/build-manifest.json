@@ -1,0 +1,23 @@
+{
+  "devFiles": [],
+  "ampDevFiles": [],
+  "polyfillFiles": [],
+  "lowPriorityFiles": [],
+  "rootMainFiles": [],
+  "pages": {
+    "/_error": [
+      "static/chunks/a6743_next_dist_compiled_8659e75b._.js",
+      "static/chunks/a6743_next_dist_shared_lib_cbf67653._.js",
+      "static/chunks/a6743_next_dist_client_cc41509a._.js",
+      "static/chunks/a6743_next_dist_4561d920._.js",
+      "static/chunks/a6743_next_error_cdea6036.js",
+      "static/chunks/[next]_entry_page-loader_ts_2ac94b12._.js",
+      "static/chunks/792e6_react-dom_8b13b360._.js",
+      "static/chunks/de429__pnpm_1deb1e9b._.js",
+      "static/chunks/[root-of-the-server]__fd48f870._.js",
+      "static/chunks/Pathology_patho-client_pages__error_2da965e7._.js",
+      "static/chunks/turbopack-Pathology_patho-client_pages__error_c7c21ae0._.js"
+    ]
+  },
+  "ampFirstPages": []
+}

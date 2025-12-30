@@ -1,0 +1,10 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/auth/[...nextauth]/route.js")
+R.c("server/chunks/a6743_next_a5c37c4b._.js")
+R.c("server/chunks/91c1e_next-auth_f53d479f._.js")
+R.c("server/chunks/afad5_openid-client_37b20436._.js")
+R.c("server/chunks/56ae9_jose_dist_node_cjs_28dfe667._.js")
+R.c("server/chunks/de429__pnpm_4f7bde9d._.js")
+R.c("server/chunks/[root-of-the-server]__25fb488e._.js")
+R.c("server/chunks/04fb0__next-internal_server_app_api_auth_[___nextauth]_route_actions_c0f5baf7.js")
+R.m("[project]/Pathology/patho-client/node_modules/.pnpm/next@16.0.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/Pathology/patho-client/app/api/auth/[...nextauth]/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/Pathology/patho-client/node_modules/.pnpm/next@16.0.6_@babel+core@7.28.5_react-dom@19.2.0_react@19.2.0__react@19.2.0/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/Pathology/patho-client/app/api/auth/[...nextauth]/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports
