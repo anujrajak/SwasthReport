@@ -10,7 +10,17 @@ import { firebaseApp } from "../firebase";
 
 const provider = new GoogleAuthProvider();
 
-export const auth: Auth | null = firebaseApp ? getAuth(firebaseApp) : null;
+// Only initialize auth if firebaseApp is available
+let auth: Auth | null = null;
+try {
+  if (firebaseApp) {
+    auth = getAuth(firebaseApp);
+  }
+} catch (error) {
+  console.error("Failed to initialize Firebase Auth:", error);
+}
+
+export { auth };
 
 export const signIn = async (): Promise<FirebaseUser | null> => {
   if (!auth) {
