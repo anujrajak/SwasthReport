@@ -10,13 +10,22 @@
       // string into just a path portion and then redirects the browser
       // to that path with a 301 redirect.
       (function() {
+        // For GitHub Pages with base path /SwasthReport/
         var pathSegmentsToKeep = 1;
 
         var l = window.location;
+        var basePath = '/SwasthReport';
+        var pathname = l.pathname;
+        
+        // Remove base path if present
+        if (pathname.startsWith(basePath)) {
+          pathname = pathname.slice(basePath.length);
+        }
+        
         l.replace(
           l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-          l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-          l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+          basePath + '/?/' +
+          pathname.slice(1).replace(/&/g, '~and~') +
           (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
           l.hash
         );
