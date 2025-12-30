@@ -18,13 +18,14 @@ const missingVars = Object.entries(requiredEnvVars)
   .map(([key]) => key);
 
 if (missingVars.length > 0) {
-  throw new Error(
+  console.error(
     `Missing required Firebase environment variables: ${missingVars.join(
       ", "
     )}\n` +
-      `Please create a .env.local file with the required Firebase configuration. ` +
-      `See .env.example for reference.`
+      `Please configure Firebase environment variables. ` +
+      `The app may not function correctly without these variables.`
   );
+  // Don't throw error, just log it so the app can still render
 }
 
 const firebaseConfig = {
