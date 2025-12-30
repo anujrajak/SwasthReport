@@ -32,9 +32,25 @@ export const signIn = async (): Promise<FirebaseUser | null> => {
   try {
     const result = await signInWithPopup(auth, provider);
     return result.user;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Signin failed", error);
-    alert("Sign in failed. Please try again.");
+    const errorMessage = error?.message || "Unknown error occurred";
+    const errorCode = error?.code || "unknown";
+    
+    // Provide more specific error messages
+    let userMessage = "Sign in failed. Please try again.";
+    if (errorCode === "auth/popup-blocked") {
+      userMessage = "Popup was blocked. Please allow popups for this site and try again.";
+    } else if (errorCode === "auth/popup-closed-by-user") {
+      userMessage = "Sign in was cancelled. Please try again.";
+    } else if (errorCode === "auth/unauthorized-domain") {
+      userMessage = "This domain is not authorized. Please contact the administrator.";
+      console.error("Domain not authorized in Firebase. Add your domain to Firebase Console → Authentication → Settings → Authorized domains");
+    } else if (errorCode === "auth/operation-not-allowed") {
+      userMessage = "Google sign-in is not enabled. Please contact the administrator.";
+    }
+    
+    alert(`${userMessage}\n\nError: ${errorMessage}`);
     return null;
   }
 };
