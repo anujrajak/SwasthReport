@@ -47,6 +47,7 @@ import {
   Printer,
 } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
+import { toTitleCase } from "@/lib/utils";
 
 export default function ReportsPage() {
   const { user: firebaseUser, loading: authLoading } = useAuth();
@@ -274,7 +275,7 @@ export default function ReportsPage() {
                             day: "numeric",
                           })}
                         </TableCell>
-                        <TableCell>{report.patientName}</TableCell>
+                        <TableCell>{toTitleCase(report.patientName)}</TableCell>
                         <TableCell>{report.doctor}</TableCell>
                         <TableCell>
                           <div className="flex flex-col">
@@ -350,16 +351,17 @@ export default function ReportsPage() {
 
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DrawerContent className="max-h-[90vh]">
-          <DrawerHeader>
-            <div className="flex items-center justify-between">
+          <DrawerHeader className="px-4 sm:px-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <DrawerTitle>Pathology Report</DrawerTitle>
-                <DrawerDescription>
+                <DrawerTitle className="text-lg sm:text-xl">Pathology Report</DrawerTitle>
+                <DrawerDescription className="text-xs sm:text-sm">
                   View complete report details
                 </DrawerDescription>
               </div>
               {selectedReport?.report && selectedReport?.patient && (
                 <Button
+                  className="w-full sm:w-auto"
                   onClick={() => {
                     if (!selectedReport?.report || !selectedReport?.patient)
                       return;
@@ -370,6 +372,9 @@ export default function ReportsPage() {
                     const lab = selectedReport.lab;
                     const patient = selectedReport.patient;
                     const report = selectedReport.report;
+                    const enableHeaderFooter = lab?.enableHeaderFooter ?? true;
+                    const topMargin = lab?.topMargin ?? 15;
+                    const bottomMargin = lab?.bottomMargin ?? 15;
                     
                     const reportDate =
                       report.date instanceof Timestamp
@@ -476,6 +481,7 @@ export default function ReportsPage() {
 
                       return `
                         <div class="print-page"${isLastTest ? ' style="page-break-after: avoid !important;"' : ''}>
+                          ${enableHeaderFooter ? `
                           <div class="print-header">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                               <div style="display: flex; align-items: center; justify-content: start;">
@@ -488,7 +494,7 @@ export default function ReportsPage() {
                               <div style="display: flex; align-items: center; justify-content: end; text-align: right;">
                                 <div>
                                   <h1 style="font-size: 1.875rem; font-weight: bold; margin: 0;">${
-                                    lab?.labName || "PATHOLOGY LABORATORY"
+                                    toTitleCase(lab?.labName) || "PATHOLOGY LABORATORY"
                                   }</h1>
                                   <p style="font-size: 0.875rem; color: #666; margin: 0.5rem 0 0 0;">${report.title || "PATHOLOGY REPORT"}</p>
                                   ${
@@ -508,12 +514,13 @@ export default function ReportsPage() {
                               </div>
                             </div>
                           </div>
+                          ` : ''}
                           <div class="print-patient-details">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; font-size: 0.875rem; margin-bottom: 1.5rem;">
                               <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                                 <div><span style="color: #666;">Name : </span><span style="font-weight: 600; font-size: 1rem;">${
                                   patient.title ? patient.title + " " : ""
-                                }${patient.name}</span></div>
+                                }${toTitleCase(patient.name)}</span></div>
                                 <div><span style="color: #666;">Age : </span><span style="font-weight: 500;">${
                                   patient.age
                                 } Years</span></div>
@@ -529,13 +536,13 @@ export default function ReportsPage() {
                                 <div><span style="color: #666;">Collected : </span><span style="font-weight: 500;">${reportDate}</span></div>
                                 <div><span style="color: #666;">Reported : </span><span style="font-weight: 500;">${reportDate}</span></div>
                           </div>
-                              </div>
+                            </div>
                           </div>
                           <div class="print-test">
                             <div style="text-align: center; margin-bottom: 1rem;">
                               <h2 style="font-size: 1.25rem; font-weight: 600; margin: 0;">${test.name}</h2>
                               <p style="font-size: 0.875rem; color: #666; margin: 0.5rem 0 0 0;">${test.category}</p>
-                            </div>
+                              </div>
                             <table style="width: 100%; border-collapse: collapse;">
                                 <thead>
                                   <tr>
@@ -557,10 +564,11 @@ export default function ReportsPage() {
                                     </div>`
                                   : ""
                               }
-                          </div>
+                            </div>
+                          ${enableHeaderFooter ? `
                           <div class="print-footer">
                             <p style="font-weight: 600; margin: 0;">${
-                              lab?.labName || "PATHOLOGY LABORATORY"
+                              toTitleCase(lab?.labName) || "PATHOLOGY LABORATORY"
                             }</p>
                             ${
                               lab?.labAddress
@@ -575,6 +583,7 @@ export default function ReportsPage() {
                                 : ""
                             }
                           </div>
+                          ` : ''}
                         </div>
                       `;
                       })
@@ -591,7 +600,7 @@ export default function ReportsPage() {
                             <style>
                               @page {
                                 size: A4;
-                                margin: 6mm;
+                                ${enableHeaderFooter ? 'margin: 6mm;' : `margin: ${topMargin}mm 6mm ${bottomMargin}mm 6mm;`}
                               }
                               body {
                                 font-family: Arial, sans-serif;
@@ -707,7 +716,7 @@ export default function ReportsPage() {
                             <div className="flex items-center justify-end text-right space-y-2">
                               <div>
                                 <h1 className="text-3xl font-bold">
-                                  {selectedReport.lab?.labName ||
+                                  {toTitleCase(selectedReport.lab?.labName) ||
                                     "PATHOLOGY LABORATORY"}
                                 </h1>
                                 <p className="text-sm text-muted-foreground">
@@ -1013,24 +1022,24 @@ export default function ReportsPage() {
 
                 {/* Screen version */}
                 <div
-                  className="space-y-0 print:hidden"
+                  className="space-y-0 print:hidden px-2 sm:px-0"
                   style={{ maxWidth: "210mm", margin: "0 auto" }}
                 >
                   {/* Header Section with Lab Info */}
-                  <div className="border-2 border-gray-300 rounded-lg p-4 mb-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center justify-start">
-                        <div className="flex items-center justify-center w-20 h-20 rounded-lg bg-primary/10 border-2 border-primary/20">
-                          <Activity className="h-12 w-12 text-primary" />
+                  <div className="border-2 border-gray-300 rounded-lg p-3 sm:p-4 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex items-center justify-center sm:justify-start">
+                        <div className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-primary/10 border-2 border-primary/20">
+                          <Activity className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
                         </div>
                       </div>
-                      <div className="flex items-center justify-end text-right space-y-2">
+                      <div className="flex items-center justify-center sm:justify-end text-center sm:text-right space-y-2">
                         <div>
-                          <h1 className="text-3xl font-bold">
-                            {selectedReport.lab?.labName ||
+                          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+                            {toTitleCase(selectedReport.lab?.labName) ||
                               "PATHOLOGY LABORATORY"}
                           </h1>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             {selectedReport.report.title || "PATHOLOGY REPORT"}
                           </p>
                           {selectedReport.lab?.labAddress && (
@@ -1052,14 +1061,14 @@ export default function ReportsPage() {
                   </div>
 
                 {/* Patient & Report Details Section */}
-                  <div className="mb-4 border-2 border-gray-300 rounded-lg p-4">
-                    <div className="grid grid-cols-2 gap-8">
+                  <div className="mb-4 border-2 border-gray-300 rounded-lg p-3 sm:p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
                       {/* Left side - Patient Details */}
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-2 text-xs sm:text-sm">
                     <div>
                           <span className="text-muted-foreground">Name : </span>
-                          <span className="font-semibold text-base">
-                            {selectedReport.patient.title ? `${selectedReport.patient.title} ` : ""}{selectedReport.patient.name}
+                          <span className="font-semibold text-sm sm:text-base">
+                            {selectedReport.patient.title ? `${selectedReport.patient.title} ` : ""}{toTitleCase(selectedReport.patient.name)}
                           </span>
                     </div>
                     <div>
@@ -1082,7 +1091,7 @@ export default function ReportsPage() {
                     </div>
                       </div>
                       {/* Right side - Dates */}
-                      <div className="space-y-2 text-sm text-right">
+                      <div className="space-y-2 text-xs sm:text-sm text-left sm:text-right">
                       <div>
                           <span className="text-muted-foreground">Registered: </span>
                           <span className="font-medium">
@@ -1208,7 +1217,7 @@ export default function ReportsPage() {
 
                 {/* Test Results Section */}
                   <div className="mb-8 space-y-6">
-                    {Object.entries(selectedReport.report.tests || {}).map(
+                  {Object.entries(selectedReport.report.tests || {}).map(
                       ([testId, test]: [string, TestResult]) => {
                         const testParams = Object.entries(
                           test.parameters || {}
@@ -1223,24 +1232,24 @@ export default function ReportsPage() {
                         if (testParams.length === 0) return null;
 
                         return (
-                          <div key={testId} className="border-2 border-gray-300 rounded-lg p-4">
+                          <div key={testId} className="border-2 border-gray-300 rounded-lg p-3 sm:p-4">
                             {/* Test Name - Centered */}
-                            <div className="text-center mb-4">
-                              <h2 className="text-xl font-semibold">
+                            <div className="text-center mb-3 sm:mb-4">
+                              <h2 className="text-lg sm:text-xl font-semibold">
                                 {test.name}
                               </h2>
                               {test.category && (
-                                <p className="text-sm text-muted-foreground mt-1">
+                                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                                   {test.category}
                                 </p>
                               )}
-                            </div>
+                        </div>
 
                             {/* Test Table */}
-                            <div className="overflow-x-auto">
-                              <Table className="w-full">
-                                <TableHeader>
-                                  <TableRow>
+                        <div className="overflow-x-auto -mx-3 sm:mx-0">
+                              <Table className="w-full min-w-[600px] sm:min-w-0">
+                            <TableHeader>
+                              <TableRow>
                                     <TableHead className="w-[35%] font-semibold">
                                       Test
                                     </TableHead>
@@ -1253,24 +1262,24 @@ export default function ReportsPage() {
                                     <TableHead className="w-[20%] font-semibold">
                                       Unit
                                     </TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
                                   {testParams.map(
                                     ([paramName, paramResult]) => {
-                                      const rangeStr =
-                                        typeof paramResult.range === "string"
-                                          ? paramResult.range
-                                          : typeof paramResult.range === "object"
+                                  const rangeStr =
+                                    typeof paramResult.range === "string"
+                                      ? paramResult.range
+                                      : typeof paramResult.range === "object"
                                           ? paramResult.range[
                                               selectedReport.patient.gender.toLowerCase()
                                             ] ||
-                                            paramResult.range["normal"] ||
-                                            "N/A"
-                                          : "N/A";
+                                        paramResult.range["normal"] ||
+                                        "N/A"
+                                      : "N/A";
 
-                                      const isOutOfRange = (() => {
-                                        const value = paramResult.value;
+                                  const isOutOfRange = (() => {
+                                    const value = paramResult.value;
                                         const numValue =
                                           typeof value === "string"
                                             ? parseFloat(value)
@@ -1283,53 +1292,53 @@ export default function ReportsPage() {
                                         const rangeMatch = rangeStr.match(
                                           /(\d+\.?\d*)\s*[-–—]\s*(\d+\.?\d*)/
                                         );
-                                        if (rangeMatch) {
-                                          const min = parseFloat(rangeMatch[1]);
-                                          const max = parseFloat(rangeMatch[2]);
-                                          return numValue < min || numValue > max;
-                                        }
-                                        return false;
-                                      })();
+                                    if (rangeMatch) {
+                                      const min = parseFloat(rangeMatch[1]);
+                                      const max = parseFloat(rangeMatch[2]);
+                                      return numValue < min || numValue > max;
+                                    }
+                                    return false;
+                                  })();
 
-                                      return (
+                                  return (
                                         <TableRow key={`${testId}-${paramName}`}>
                                           <TableCell className="w-[35%]">
                                             <div className="text-muted-foreground">
-                                              {paramName}
+                                        {paramName}
                                             </div>
-                                          </TableCell>
+                                      </TableCell>
                                           <TableCell
                                             className={`w-[20%] ${
                                               isOutOfRange ? "font-bold" : ""
                                             }`}
                                           >
                                             {paramResult.value}
-                                          </TableCell>
+                                      </TableCell>
                                           <TableCell className="w-[25%] text-muted-foreground">
-                                            {rangeStr}
-                                          </TableCell>
+                                        {rangeStr}
+                                      </TableCell>
                                           <TableCell className="w-[20%]">
                                             {paramResult.unit || "-"}
-                                          </TableCell>
-                                        </TableRow>
-                                      );
+                                      </TableCell>
+                                    </TableRow>
+                                  );
                                     }
                                   )}
-                                </TableBody>
-                              </Table>
-                            </div>
+                            </TableBody>
+                          </Table>
+                </div>
 
                             {/* Test Comment */}
                             {test.comment && test.comment.trim() !== "" && (
-                              <div className="mt-4 pt-4">
-                                <h3 className="text-base font-semibold mb-2">
-                                  Comments
+                              <div className="mt-3 sm:mt-4 pt-3 sm:pt-4">
+                                <h3 className="text-sm sm:text-base font-semibold mb-2">
+                        Comments
                                 </h3>
-                                <p className="text-sm whitespace-pre-wrap text-muted-foreground">
+                                <p className="text-xs sm:text-sm whitespace-pre-wrap text-muted-foreground">
                                   {test.comment}
-                                </p>
-                              </div>
-                            )}
+                      </p>
+                    </div>
+                )}
                           </div>
                         );
                       }
@@ -1337,10 +1346,10 @@ export default function ReportsPage() {
                 </div>
 
                 {/* Footer Section with Lab Info */}
-                  <div className="border-2 border-gray-300 rounded-lg p-4">
-                  <div className="text-center space-y-1 text-xs text-muted-foreground">
-                    <p className="font-semibold">
-                      {selectedReport.lab?.labName || "PATHOLOGY LABORATORY"}
+                  <div className="border-2 border-gray-300 rounded-lg p-3 sm:p-4">
+                  <div className="text-center space-y-1 text-xs sm:text-sm text-muted-foreground">
+                    <p className="font-semibold text-xs sm:text-sm">
+                      {toTitleCase(selectedReport.lab?.labName) || "PATHOLOGY LABORATORY"}
                     </p>
                     {selectedReport.lab?.labAddress && (
                       <p>{selectedReport.lab.labAddress}</p>

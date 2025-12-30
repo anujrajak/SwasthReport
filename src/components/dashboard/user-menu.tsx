@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { LogOut, User, Settings, ChevronsUpDown } from "lucide-react";
+import { LogOut, User, ChevronsUpDown } from "lucide-react";
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -114,13 +114,9 @@ export function UserMenu() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/dashboard/lab-details")}>
               <User />
-              Account
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings />
-              Settings
+              Profile
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>

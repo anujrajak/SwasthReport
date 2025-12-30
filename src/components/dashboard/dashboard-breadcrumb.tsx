@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { useAuth } from "@/hooks/useAuth";
 import { getPatient } from "@/utils/firestore/patients";
+import { toTitleCase } from "@/lib/utils";
 
 interface BreadcrumbItem {
   label: string;
@@ -130,7 +131,7 @@ export function DashboardBreadcrumb() {
     if (patientsIndex !== -1) {
       // Insert patient name after "Patients"
       const patientBreadcrumb: BreadcrumbItem = {
-        label: loading ? "Loading..." : patientName || "Patient",
+        label: loading ? "Loading..." : toTitleCase(patientName) || "Patient",
         href: isReportsPage ? undefined : `/dashboard/patients/${patientId}`, // No href if on reports page
         isActive: isReportsPage || pathname === `/dashboard/patients/${patientId}`, // Active if on reports page
       };

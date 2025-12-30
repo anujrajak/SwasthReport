@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { User, Loader2, Plus, Trash2 } from "lucide-react";
 
 const userSchema = z.object({
@@ -40,6 +41,9 @@ const userSchema = z.object({
   labName: z.string().optional().or(z.literal("")),
   labAddress: z.string().optional().or(z.literal("")),
   labContacts: z.array(z.string()),
+  enableHeaderFooter: z.boolean().default(true),
+  topMargin: z.number().min(0).max(100).default(15),
+  bottomMargin: z.number().min(0).max(100).default(15),
 });
 
 type UserFormValues = z.infer<typeof userSchema>;
@@ -60,6 +64,9 @@ export default function LabDetailsPage() {
       labName: "",
       labAddress: "",
       labContacts: [],
+      enableHeaderFooter: true,
+      topMargin: 15,
+      bottomMargin: 15,
     },
   });
 
@@ -92,6 +99,9 @@ export default function LabDetailsPage() {
               data.labContacts && data.labContacts.length > 0
                 ? data.labContacts
                 : [],
+            enableHeaderFooter: data.enableHeaderFooter ?? true,
+            topMargin: data.topMargin ?? 15,
+            bottomMargin: data.bottomMargin ?? 15,
           });
         }
       } catch (error) {
@@ -123,6 +133,9 @@ export default function LabDetailsPage() {
         labName: values.labName,
         labAddress: values.labAddress,
         labContacts: values.labContacts,
+        enableHeaderFooter: values.enableHeaderFooter,
+        topMargin: values.topMargin,
+        bottomMargin: values.bottomMargin,
       });
 
       // Update local state
@@ -137,6 +150,9 @@ export default function LabDetailsPage() {
           values.labContacts && values.labContacts.length > 0
             ? values.labContacts
             : undefined,
+        enableHeaderFooter: values.enableHeaderFooter,
+        topMargin: values.topMargin,
+        bottomMargin: values.bottomMargin,
       });
 
       toast.success("Lab details updated successfully", { id: toastId });
@@ -332,6 +348,84 @@ export default function LabDetailsPage() {
                 )}
               />
 
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">PDF Settings</h3>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="enableHeaderFooter"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Enable header and footer</FormLabel>
+                      <FormDescription>
+                        When enabled, header and footer will be shown on PDF reports.
+                        When disabled, custom top and bottom margins will be used instead.
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              {!form.watch("enableHeaderFooter") && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="topMargin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Top Margin (mm)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="15"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Top margin in millimeters for PDF reports when header/footer is disabled.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="bottomMargin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bottom Margin (mm)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="15"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Bottom margin in millimeters for PDF reports when header/footer is disabled.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -416,6 +510,9 @@ export default function LabDetailsPage() {
                           userData.labContacts.length > 0
                             ? userData.labContacts
                             : [],
+                        enableHeaderFooter: userData.enableHeaderFooter ?? true,
+                        topMargin: userData.topMargin ?? 15,
+                        bottomMargin: userData.bottomMargin ?? 15,
                       });
                     }
                   }}

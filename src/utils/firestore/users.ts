@@ -10,6 +10,9 @@ export interface User {
   labName?: string;
   labAddress?: string;
   labContacts?: string[];
+  enableHeaderFooter?: boolean;
+  topMargin?: number;
+  bottomMargin?: number;
 }
 
 export const getUser = async (uid: string): Promise<User | null> => {

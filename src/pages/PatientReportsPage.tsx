@@ -1,9 +1,13 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { getPatient, type PatientWithId } from "@/utils/firestore/patients";
-import { getReports, getReport, type ReportWithId, type TestResult } from "@/utils/firestore/reports";
+import {
+  getReports,
+  getReport,
+  type ReportWithId,
+  type TestResult,
+} from "@/utils/firestore/reports";
 import { getUser, type User } from "@/utils/firestore/users";
 import { toast } from "sonner";
 import {
@@ -31,8 +35,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, FileText, Users, Eye, Loader2, Activity, Printer } from "lucide-react";
+import {
+  ArrowLeft,
+  FileText,
+  Users,
+  Eye,
+  Loader2,
+  Activity,
+  Printer,
+} from "lucide-react";
 import { Timestamp } from "firebase/firestore";
+import { toTitleCase } from "@/lib/utils";
 
 export default function PatientReportsPage() {
   const params = useParams();
@@ -144,9 +157,7 @@ export default function PatientReportsPage() {
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <Users className="h-12 w-12 text-muted-foreground" />
         <h2 className="text-2xl font-semibold">Not Authenticated</h2>
-        <p className="text-muted-foreground">
-          Please log in to view reports
-        </p>
+        <p className="text-muted-foreground">Please log in to view reports</p>
       </div>
     );
   }
@@ -175,7 +186,8 @@ export default function PatientReportsPage() {
         <CardHeader>
           <CardTitle>Reports</CardTitle>
           <CardDescription>
-            All pathology reports for {patientName || "this patient"}
+            All pathology reports for{" "}
+            {toTitleCase(patientName) || "this patient"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -187,7 +199,9 @@ export default function PatientReportsPage() {
                 No reports have been created for this patient yet.
               </p>
               <Button
-                onClick={() => router(`/dashboard/make-report?patientId=${patientId}`)}
+                onClick={() =>
+                  router(`/dashboard/make-report?patientId=${patientId}`)
+                }
               >
                 Create Report
               </Button>
@@ -204,9 +218,10 @@ export default function PatientReportsPage() {
               </TableHeader>
               <TableBody>
                 {reports.map((report) => {
-                  const reportDate = report.date instanceof Timestamp
-                    ? report.date.toDate()
-                    : new Date(report.date);
+                  const reportDate =
+                    report.date instanceof Timestamp
+                      ? report.date.toDate()
+                      : new Date(report.date);
                   const testCount = Object.keys(report.tests || {}).length;
                   const testNames = Object.values(report.tests || {})
                     .map((test) => test.name)
@@ -224,7 +239,9 @@ export default function PatientReportsPage() {
                       <TableCell>{report.doctor}</TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium">{testCount} test(s)</span>
+                          <span className="font-medium">
+                            {testCount} test(s)
+                          </span>
                           <span className="text-xs text-muted-foreground">
                             {testNames.length > 50
                               ? `${testNames.substring(0, 50)}...`
@@ -254,132 +271,163 @@ export default function PatientReportsPage() {
 
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DrawerContent className="max-h-[90vh]">
-          <DrawerHeader>
-            <div className="flex items-center justify-between">
+          <DrawerHeader className="px-4 sm:px-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <DrawerTitle>Pathology Report</DrawerTitle>
-                <DrawerDescription>
+                <DrawerTitle className="text-lg sm:text-xl">
+                  Pathology Report
+                </DrawerTitle>
+                <DrawerDescription className="text-xs sm:text-sm">
                   View complete report details
                 </DrawerDescription>
               </div>
               {selectedReport?.report && selectedReport?.patient && (
                 <Button
+                  className="w-full sm:w-auto"
                   onClick={() => {
                     if (!selectedReport?.report || !selectedReport?.patient)
                       return;
-                    
+
                     const tests = Object.entries(
                       selectedReport.report.tests || {}
                     );
                     const lab = selectedReport.lab;
                     const patient = selectedReport.patient;
                     const report = selectedReport.report;
-                    
+                    const enableHeaderFooter = lab?.enableHeaderFooter ?? true;
+                    const topMargin = lab?.topMargin ?? 15;
+                    const bottomMargin = lab?.bottomMargin ?? 15;
+
                     const reportDate =
                       report.date instanceof Timestamp
-                      ? report.date.toDate().toLocaleDateString("en-US", {
-                          year: "numeric",
+                        ? report.date.toDate().toLocaleDateString("en-US", {
+                            year: "numeric",
                             month: "short",
-                          day: "numeric",
-                          }) + " " +
+                            day: "numeric",
+                          }) +
+                          " " +
                           report.date.toDate().toLocaleTimeString("en-US", {
                             hour: "2-digit",
                             minute: "2-digit",
                             hour12: true,
-                        })
-                      : new Date(report.date).toLocaleDateString("en-US", {
-                          year: "numeric",
+                          })
+                        : new Date(report.date).toLocaleDateString("en-US", {
+                            year: "numeric",
                             month: "short",
-                          day: "numeric",
-                          }) + " " +
+                            day: "numeric",
+                          }) +
+                          " " +
                           new Date(report.date).toLocaleTimeString("en-US", {
                             hour: "2-digit",
                             minute: "2-digit",
                             hour12: true,
                           });
-                    
-                    const registeredDate = report.createdAt instanceof Timestamp
-                      ? report.createdAt.toDate().toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        }) + " " +
-                        report.createdAt.toDate().toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })
-                      : reportDate;
+
+                    const registeredDate =
+                      report.createdAt instanceof Timestamp
+                        ? report.createdAt
+                            .toDate()
+                            .toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            }) +
+                          " " +
+                          report.createdAt
+                            .toDate()
+                            .toLocaleTimeString("en-US", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })
+                        : reportDate;
 
                     // Generate HTML for each test (one per page)
                     const testPages = tests
-                      .map(([testId, test]: [string, TestResult], testIndex: number) => {
-                        const isLastTest = testIndex === tests.length - 1;
-                        const parameters = Object.entries(
-                          test.parameters || {}
-                        ).filter(([_, paramResult]) => {
-                          return (
-                            paramResult.value !== null &&
-                                 paramResult.value !== undefined && 
-                            paramResult.value !== ""
-                          );
-                        });
-
-                      const rangeStr = (paramResult: any) => {
-                        const range = paramResult.range;
-                        if (typeof range === "string") return range;
-                        if (typeof range === "object") {
+                      .map(
+                        (
+                          [testId, test]: [string, TestResult],
+                          testIndex: number
+                        ) => {
+                          const isLastTest = testIndex === tests.length - 1;
+                          const parameters = Object.entries(
+                            test.parameters || {}
+                          ).filter(([_, paramResult]) => {
                             return (
-                              range[patient.gender.toLowerCase()] ||
-                                 range["normal"] ||
-                              "N/A"
+                              paramResult.value !== null &&
+                              paramResult.value !== undefined &&
+                              paramResult.value !== ""
                             );
-                        }
-                        return "N/A";
-                      };
+                          });
 
-                      const isOutOfRange = (value: any, rangeStr: string) => {
-                          const numValue =
-                            typeof value === "string"
-                              ? parseFloat(value)
-                              : value;
-                          if (typeof numValue !== "number" || isNaN(numValue))
+                          const rangeStr = (paramResult: any) => {
+                            const range = paramResult.range;
+                            if (typeof range === "string") return range;
+                            if (typeof range === "object") {
+                              return (
+                                range[patient.gender.toLowerCase()] ||
+                                range["normal"] ||
+                                "N/A"
+                              );
+                            }
+                            return "N/A";
+                          };
+
+                          const isOutOfRange = (
+                            value: any,
+                            rangeStr: string
+                          ) => {
+                            const numValue =
+                              typeof value === "string"
+                                ? parseFloat(value)
+                                : value;
+                            if (typeof numValue !== "number" || isNaN(numValue))
+                              return false;
+                            const rangeMatch = rangeStr.match(
+                              /(\d+\.?\d*)\s*[-–—]\s*(\d+\.?\d*)/
+                            );
+                            if (rangeMatch) {
+                              const min = parseFloat(rangeMatch[1]);
+                              const max = parseFloat(rangeMatch[2]);
+                              return numValue < min || numValue > max;
+                            }
                             return false;
-                          const rangeMatch = rangeStr.match(
-                            /(\d+\.?\d*)\s*[-–—]\s*(\d+\.?\d*)/
-                          );
-                        if (rangeMatch) {
-                          const min = parseFloat(rangeMatch[1]);
-                          const max = parseFloat(rangeMatch[2]);
-                          return numValue < min || numValue > max;
-                        }
-                        return false;
-                      };
+                          };
 
-                        const paramsRows = parameters
-                          .map(([paramName, paramResult]: [string, any]) => {
-                        const rStr = rangeStr(paramResult);
-                            const outOfRange = isOutOfRange(
-                              paramResult.value,
-                              rStr
-                            );
-                        return `
+                          const paramsRows = parameters
+                            .map(([paramName, paramResult]: [string, any]) => {
+                              const rStr = rangeStr(paramResult);
+                              const outOfRange = isOutOfRange(
+                                paramResult.value,
+                                rStr
+                              );
+                              return `
                           <tr>
                             <td style="width: 35%;"><div style="color: #666;">${paramName}</div></td>
                             <td style="${
                               outOfRange ? "font-weight: bold;" : ""
                             } width: 20%;">${paramResult.value}</td>
                             <td style="color: #666; width: 25%;">${rStr}</td>
-                            <td style="width: 20%;">${paramResult.unit || "-"}</td>
+                            <td style="width: 20%;">${
+                              paramResult.unit || "-"
+                            }</td>
                           </tr>
                         `;
-                          })
-                          .join("");
-                        
-                        const hasTestComment = test.comment && test.comment.trim() !== "";
+                            })
+                            .join("");
 
-                      return `
-                        <div class="print-page"${isLastTest ? ' style="page-break-after: avoid !important;"' : ''}>
+                          const hasTestComment =
+                            test.comment && test.comment.trim() !== "";
+
+                          return `
+                        <div class="print-page"${
+                          isLastTest
+                            ? ' style="page-break-after: avoid !important;"'
+                            : ""
+                        }>
+                          ${
+                            enableHeaderFooter
+                              ? `
                           <div class="print-header">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                               <div style="display: flex; align-items: center; justify-content: start;">
@@ -392,9 +440,12 @@ export default function PatientReportsPage() {
                               <div style="display: flex; align-items: center; justify-content: end; text-align: right;">
                                 <div>
                                   <h1 style="font-size: 1.875rem; font-weight: bold; margin: 0;">${
-                                    lab?.labName || "PATHOLOGY LABORATORY"
+                                    toTitleCase(lab?.labName) ||
+                                    "PATHOLOGY LABORATORY"
                                   }</h1>
-                                  <p style="font-size: 0.875rem; color: #666; margin: 0.5rem 0 0 0;">${report.title || "PATHOLOGY REPORT"}</p>
+                                  <p style="font-size: 0.875rem; color: #666; margin: 0.5rem 0 0 0;">${
+                                    report.title || "PATHOLOGY REPORT"
+                                  }</p>
                                   ${
                                     lab?.labAddress
                                       ? `<p style="font-size: 0.75rem; color: #666; margin: 0.75rem 0 0 0;">${lab.labAddress}</p>`
@@ -412,12 +463,15 @@ export default function PatientReportsPage() {
                               </div>
                             </div>
                           </div>
+                          `
+                              : ""
+                          }
                           <div class="print-patient-details">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; font-size: 0.875rem; margin-bottom: 1.5rem;">
                               <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                                 <div><span style="color: #666;">Name : </span><span style="font-weight: 600; font-size: 1rem;">${
                                   patient.title ? patient.title + " " : ""
-                                }${patient.name}</span></div>
+                                }${toTitleCase(patient.name)}</span></div>
                                 <div><span style="color: #666;">Age : </span><span style="font-weight: 500;">${
                                   patient.age
                                 } Years</span></div>
@@ -437,8 +491,12 @@ export default function PatientReportsPage() {
                           </div>
                           <div class="print-test">
                             <div style="text-align: center; margin-bottom: 1rem;">
-                              <h2 style="font-size: 1.25rem; font-weight: 600; margin: 0;">${test.name}</h2>
-                              <p style="font-size: 0.875rem; color: #666; margin: 0.5rem 0 0 0;">${test.category}</p>
+                              <h2 style="font-size: 1.25rem; font-weight: 600; margin: 0;">${
+                                test.name
+                              }</h2>
+                              <p style="font-size: 0.875rem; color: #666; margin: 0.5rem 0 0 0;">${
+                                test.category
+                              }</p>
                             </div>
                             <table style="width: 100%; border-collapse: collapse;">
                                 <thead>
@@ -462,9 +520,13 @@ export default function PatientReportsPage() {
                                   : ""
                               }
                           </div>
+                          ${
+                            enableHeaderFooter
+                              ? `
                           <div class="print-footer">
                             <p style="font-weight: 600; margin: 0;">${
-                              lab?.labName || "PATHOLOGY LABORATORY"
+                              toTitleCase(lab?.labName) ||
+                              "PATHOLOGY LABORATORY"
                             }</p>
                             ${
                               lab?.labAddress
@@ -479,11 +541,14 @@ export default function PatientReportsPage() {
                                 : ""
                             }
                           </div>
+                          `
+                              : ""
+                          }
                         </div>
                       `;
-                      })
+                        }
+                      )
                       .join("");
-
 
                     const printWindow = window.open("", "_blank");
                     if (printWindow) {
@@ -495,7 +560,11 @@ export default function PatientReportsPage() {
                             <style>
                               @page {
                                 size: A4;
-                                margin: 6mm;
+                                ${
+                                  enableHeaderFooter
+                                    ? "margin: 6mm;"
+                                    : `margin: ${topMargin}mm 6mm ${bottomMargin}mm 6mm;`
+                                }
                               }
                               body {
                                 font-family: Arial, sans-serif;
@@ -597,24 +666,24 @@ export default function PatientReportsPage() {
               <>
                 {/* Screen version */}
                 <div
-                  className="space-y-0 print:hidden"
+                  className="space-y-0 print:hidden px-2 sm:px-0"
                   style={{ maxWidth: "210mm", margin: "0 auto" }}
                 >
                   {/* Header Section with Lab Info */}
-                  <div className="border-2 border-gray-300 rounded-lg p-4 mb-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center justify-start">
-                        <div className="flex items-center justify-center w-20 h-20 rounded-lg bg-primary/10 border-2 border-primary/20">
-                          <Activity className="h-12 w-12 text-primary" />
+                  <div className="border-2 border-gray-300 rounded-lg p-3 sm:p-4 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex items-center justify-center sm:justify-start">
+                        <div className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-primary/10 border-2 border-primary/20">
+                          <Activity className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
                         </div>
                       </div>
-                      <div className="flex items-center justify-end text-right space-y-2">
+                      <div className="flex items-center justify-center sm:justify-end text-center sm:text-right space-y-2">
                         <div>
-                          <h1 className="text-3xl font-bold">
-                            {selectedReport.lab?.labName ||
+                          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+                            {toTitleCase(selectedReport.lab?.labName) ||
                               "PATHOLOGY LABORATORY"}
                           </h1>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             {selectedReport.report.title || "PATHOLOGY REPORT"}
                           </p>
                           {selectedReport.lab?.labAddress && (
@@ -624,67 +693,76 @@ export default function PatientReportsPage() {
                           )}
                           {selectedReport.lab?.labContacts &&
                             selectedReport.lab.labContacts.length > 0 && (
-                            <div className="mt-2 text-xs text-muted-foreground">
+                              <div className="mt-2 text-xs text-muted-foreground">
                                 <p>
                                   {selectedReport.lab.labContacts.join(" | ")}
                                 </p>
-                            </div>
-                          )}
+                              </div>
+                            )}
                         </div>
                       </div>
                     </div>
                   </div>
 
-                {/* Patient & Report Details Section */}
-                  <div className="mb-4 border-2 border-gray-300 rounded-lg p-4">
-                    <div className="grid grid-cols-2 gap-8">
+                  {/* Patient & Report Details Section */}
+                  <div className="mb-4 border-2 border-gray-300 rounded-lg p-3 sm:p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
                       {/* Left side - Patient Details */}
-                      <div className="space-y-2 text-sm">
-                    <div>
+                      <div className="space-y-2 text-xs sm:text-sm">
+                        <div>
                           <span className="text-muted-foreground">Name : </span>
-                          <span className="font-semibold text-base">
-                            {selectedReport.patient.title ? `${selectedReport.patient.title} ` : ""}{selectedReport.patient.name}
+                          <span className="font-semibold text-sm sm:text-base">
+                            {selectedReport.patient.title
+                              ? `${selectedReport.patient.title} `
+                              : ""}
+                            {toTitleCase(selectedReport.patient.name)}
                           </span>
-                    </div>
-                    <div>
+                        </div>
+                        <div>
                           <span className="text-muted-foreground">Age : </span>
                           <span className="font-medium">
                             {selectedReport.patient.age} Years
                           </span>
-                    </div>
-                    <div>
+                        </div>
+                        <div>
                           <span className="text-muted-foreground">Sex : </span>
                           <span className="font-medium capitalize">
                             {selectedReport.patient.gender}
                           </span>
-                    </div>
-                    <div>
-                          <span className="text-muted-foreground">Ref. By : </span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">
+                            Ref. By :{" "}
+                          </span>
                           <span className="font-semibold">
                             {selectedReport.report.doctor || "SELF"}
                           </span>
-                    </div>
+                        </div>
                       </div>
                       {/* Right side - Dates */}
-                      <div className="space-y-2 text-sm text-right">
-                      <div>
-                          <span className="text-muted-foreground">Registered: </span>
+                      <div className="space-y-2 text-xs sm:text-sm text-left sm:text-right">
+                        <div>
+                          <span className="text-muted-foreground">
+                            Registered:{" "}
+                          </span>
                           <span className="font-medium">
-                            {selectedReport.report.createdAt instanceof Timestamp
+                            {selectedReport.report.createdAt instanceof
+                            Timestamp
                               ? selectedReport.report.createdAt
                                   .toDate()
                                   .toLocaleDateString("en-US", {
                                     year: "numeric",
                                     month: "short",
                                     day: "numeric",
-                                  }) + " " +
-                                  selectedReport.report.createdAt
-                                    .toDate()
-                                    .toLocaleTimeString("en-US", {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: true,
-                                    })
+                                  }) +
+                                " " +
+                                selectedReport.report.createdAt
+                                  .toDate()
+                                  .toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })
                               : selectedReport.report.date instanceof Timestamp
                               ? selectedReport.report.date
                                   .toDate()
@@ -692,21 +770,23 @@ export default function PatientReportsPage() {
                                     year: "numeric",
                                     month: "short",
                                     day: "numeric",
-                                  }) + " " +
-                                  selectedReport.report.date
-                                    .toDate()
-                                    .toLocaleTimeString("en-US", {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: true,
-                                    })
+                                  }) +
+                                " " +
+                                selectedReport.report.date
+                                  .toDate()
+                                  .toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })
                               : new Date(
                                   selectedReport.report.date
                                 ).toLocaleDateString("en-US", {
                                   year: "numeric",
                                   month: "short",
                                   day: "numeric",
-                                }) + " " +
+                                }) +
+                                " " +
                                 new Date(
                                   selectedReport.report.date
                                 ).toLocaleTimeString("en-US", {
@@ -715,43 +795,11 @@ export default function PatientReportsPage() {
                                   hour12: true,
                                 })}
                           </span>
-                      </div>
-                    <div>
-                          <span className="text-muted-foreground">Collected : </span>
-                          <span className="font-medium">
-                        {selectedReport.report.date instanceof Timestamp
-                              ? selectedReport.report.date
-                                  .toDate()
-                                  .toLocaleDateString("en-US", {
-                              year: "numeric",
-                                    month: "short",
-                              day: "numeric",
-                                  }) + " " +
-                                  selectedReport.report.date
-                                    .toDate()
-                                    .toLocaleTimeString("en-US", {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: true,
-                                    })
-                              : new Date(
-                                  selectedReport.report.date
-                                ).toLocaleDateString("en-US", {
-                              year: "numeric",
-                                  month: "short",
-                              day: "numeric",
-                                }) + " " +
-                                new Date(
-                                  selectedReport.report.date
-                                ).toLocaleTimeString("en-US", {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                            })}
-                      </span>
-                    </div>
-                    <div>
-                          <span className="text-muted-foreground">Reported : </span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">
+                            Collected :{" "}
+                          </span>
                           <span className="font-medium">
                             {selectedReport.report.date instanceof Timestamp
                               ? selectedReport.report.date
@@ -760,21 +808,23 @@ export default function PatientReportsPage() {
                                     year: "numeric",
                                     month: "short",
                                     day: "numeric",
-                                  }) + " " +
-                                  selectedReport.report.date
-                                    .toDate()
-                                    .toLocaleTimeString("en-US", {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: true,
-                                    })
+                                  }) +
+                                " " +
+                                selectedReport.report.date
+                                  .toDate()
+                                  .toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })
                               : new Date(
                                   selectedReport.report.date
                                 ).toLocaleDateString("en-US", {
                                   year: "numeric",
                                   month: "short",
                                   day: "numeric",
-                                }) + " " +
+                                }) +
+                                " " +
                                 new Date(
                                   selectedReport.report.date
                                 ).toLocaleTimeString("en-US", {
@@ -784,13 +834,51 @@ export default function PatientReportsPage() {
                                 })}
                           </span>
                         </div>
+                        <div>
+                          <span className="text-muted-foreground">
+                            Reported :{" "}
+                          </span>
+                          <span className="font-medium">
+                            {selectedReport.report.date instanceof Timestamp
+                              ? selectedReport.report.date
+                                  .toDate()
+                                  .toLocaleDateString("en-US", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  }) +
+                                " " +
+                                selectedReport.report.date
+                                  .toDate()
+                                  .toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })
+                              : new Date(
+                                  selectedReport.report.date
+                                ).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }) +
+                                " " +
+                                new Date(
+                                  selectedReport.report.date
+                                ).toLocaleTimeString("en-US", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <Separator className="my-8" />
+                  <Separator className="my-8" />
 
-                {/* Test Results Section */}
+                  {/* Test Results Section */}
                   <div className="mb-8 space-y-6">
                     {Object.entries(selectedReport.report.tests || {}).map(
                       ([testId, test]: [string, TestResult]) => {
@@ -799,7 +887,7 @@ export default function PatientReportsPage() {
                         ).filter(([_, paramResult]) => {
                           return (
                             paramResult.value !== null &&
-                                   paramResult.value !== undefined && 
+                            paramResult.value !== undefined &&
                             paramResult.value !== ""
                           );
                         });
@@ -807,22 +895,25 @@ export default function PatientReportsPage() {
                         if (testParams.length === 0) return null;
 
                         return (
-                          <div key={testId} className="border-2 border-gray-300 rounded-lg p-4">
+                          <div
+                            key={testId}
+                            className="border-2 border-gray-300 rounded-lg p-3 sm:p-4"
+                          >
                             {/* Test Name - Centered */}
-                            <div className="text-center mb-4">
-                              <h2 className="text-xl font-semibold">
+                            <div className="text-center mb-3 sm:mb-4">
+                              <h2 className="text-lg sm:text-xl font-semibold">
                                 {test.name}
                               </h2>
                               {test.category && (
-                                <p className="text-sm text-muted-foreground mt-1">
+                                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                                   {test.category}
                                 </p>
                               )}
                             </div>
 
                             {/* Test Table */}
-                            <div className="overflow-x-auto">
-                              <Table className="w-full">
+                            <div className="overflow-x-auto -mx-3 sm:mx-0">
+                              <Table className="w-full min-w-[600px] sm:min-w-0">
                                 <TableHeader>
                                   <TableRow>
                                     <TableHead className="w-[35%] font-semibold">
@@ -845,7 +936,8 @@ export default function PatientReportsPage() {
                                       const rangeStr =
                                         typeof paramResult.range === "string"
                                           ? paramResult.range
-                                          : typeof paramResult.range === "object"
+                                          : typeof paramResult.range ===
+                                            "object"
                                           ? paramResult.range[
                                               selectedReport.patient.gender.toLowerCase()
                                             ] ||
@@ -870,13 +962,17 @@ export default function PatientReportsPage() {
                                         if (rangeMatch) {
                                           const min = parseFloat(rangeMatch[1]);
                                           const max = parseFloat(rangeMatch[2]);
-                                          return numValue < min || numValue > max;
+                                          return (
+                                            numValue < min || numValue > max
+                                          );
                                         }
                                         return false;
                                       })();
 
                                       return (
-                                        <TableRow key={`${testId}-${paramName}`}>
+                                        <TableRow
+                                          key={`${testId}-${paramName}`}
+                                        >
                                           <TableCell className="w-[35%]">
                                             <div className="text-muted-foreground">
                                               {paramName}
@@ -905,11 +1001,11 @@ export default function PatientReportsPage() {
 
                             {/* Test Comment */}
                             {test.comment && test.comment.trim() !== "" && (
-                              <div className="mt-4 pt-4">
-                                <h3 className="text-base font-semibold mb-2">
+                              <div className="mt-3 sm:mt-4 pt-3 sm:pt-4">
+                                <h3 className="text-sm sm:text-base font-semibold mb-2">
                                   Comments
                                 </h3>
-                                <p className="text-sm whitespace-pre-wrap text-muted-foreground">
+                                <p className="text-xs sm:text-sm whitespace-pre-wrap text-muted-foreground">
                                   {test.comment}
                                 </p>
                               </div>
@@ -918,23 +1014,24 @@ export default function PatientReportsPage() {
                         );
                       }
                     )}
-                </div>
+                  </div>
 
-                {/* Footer Section with Lab Info */}
-                  <div className="border-2 border-gray-300 rounded-lg p-4">
-                  <div className="text-center space-y-1 text-xs text-muted-foreground">
-                    <p className="font-semibold">
-                      {selectedReport.lab?.labName || "PATHOLOGY LABORATORY"}
-                    </p>
-                    {selectedReport.lab?.labAddress && (
-                      <p>{selectedReport.lab.labAddress}</p>
-                    )}
+                  {/* Footer Section with Lab Info */}
+                  <div className="border-2 border-gray-300 rounded-lg p-3 sm:p-4">
+                    <div className="text-center space-y-1 text-xs sm:text-sm text-muted-foreground">
+                      <p className="font-semibold text-xs sm:text-sm">
+                        {toTitleCase(selectedReport.lab?.labName) ||
+                          "PATHOLOGY LABORATORY"}
+                      </p>
+                      {selectedReport.lab?.labAddress && (
+                        <p>{selectedReport.lab.labAddress}</p>
+                      )}
                       {selectedReport.lab?.labContacts &&
                         selectedReport.lab.labContacts.length > 0 && (
-                      <p>{selectedReport.lab.labContacts.join(" | ")}</p>
-                    )}
+                          <p>{selectedReport.lab.labContacts.join(" | ")}</p>
+                        )}
+                    </div>
                   </div>
-                </div>
                 </div>
               </>
             ) : (
@@ -951,4 +1048,3 @@ export default function PatientReportsPage() {
     </div>
   );
 }
-

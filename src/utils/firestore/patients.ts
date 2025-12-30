@@ -129,3 +129,40 @@ export const deletePatient = async (
   const patientRef = doc(db, "users", userId, "patients", patientId);
   await deleteDoc(patientRef);
 };
+
+/**
+ * Search patients by name (fetches all and filters client-side)
+ * For better performance, consider implementing server-side search
+ */
+export const searchPatients = async (
+  userId: string,
+  searchTerm: string
+): Promise<PatientWithId[]> => {
+  if (!searchTerm.trim()) {
+    return [];
+  }
+
+  const allPatients: PatientWithId[] = [];
+  let lastDoc: QueryDocumentSnapshot<DocumentData> | null = null;
+  let hasMore = true;
+
+  // Fetch all patients in batches
+  while (hasMore) {
+    const result = await getPatients(userId, 1000, lastDoc || undefined);
+    allPatients.push(...result.patients);
+    lastDoc = result.lastDoc;
+    hasMore = result.hasMore;
+  }
+
+  // Filter by search term (case-insensitive)
+  const lowerSearchTerm = searchTerm.toLowerCase().trim();
+  return allPatients.filter((patient) => {
+    const fullName = patient.title 
+      ? `${patient.title} ${patient.name}`.toLowerCase()
+      : patient.name.toLowerCase();
+    return fullName.includes(lowerSearchTerm) || 
+           patient.name.toLowerCase().includes(lowerSearchTerm) ||
+           (patient.phone && patient.phone.includes(lowerSearchTerm)) ||
+           (patient.email && patient.email.toLowerCase().includes(lowerSearchTerm));
+  });
+};
