@@ -1,5 +1,5 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, FirebaseApp } from "firebase/app";
+import { getFirestore, Firestore } from "firebase/firestore";
 
 // Validate that all required environment variables are present
 const requiredEnvVars = {
@@ -17,27 +17,35 @@ const missingVars = Object.entries(requiredEnvVars)
   .filter(([, value]) => !value)
   .map(([key]) => key);
 
+let firebaseApp: FirebaseApp | null = null;
+let db: Firestore | null = null;
+
 if (missingVars.length > 0) {
-  console.error(
+  console.warn(
     `Missing required Firebase environment variables: ${missingVars.join(
       ", "
     )}\n` +
       `Please configure Firebase environment variables. ` +
       `The app may not function correctly without these variables.`
   );
-  // Don't throw error, just log it so the app can still render
+} else {
+  try {
+    const firebaseConfig = {
+      apiKey: requiredEnvVars.apiKey!,
+      authDomain: requiredEnvVars.authDomain!,
+      projectId: requiredEnvVars.projectId!,
+      storageBucket: requiredEnvVars.storageBucket!,
+      messagingSenderId: requiredEnvVars.messagingSenderId!,
+      appId: requiredEnvVars.appId!,
+      measurementId: requiredEnvVars.measurementId!,
+    };
+
+    // Initialize Firebase
+    firebaseApp = initializeApp(firebaseConfig);
+    db = getFirestore(firebaseApp);
+  } catch (error) {
+    console.error("Failed to initialize Firebase:", error);
+  }
 }
 
-const firebaseConfig = {
-  apiKey: requiredEnvVars.apiKey!,
-  authDomain: requiredEnvVars.authDomain!,
-  projectId: requiredEnvVars.projectId!,
-  storageBucket: requiredEnvVars.storageBucket!,
-  messagingSenderId: requiredEnvVars.messagingSenderId!,
-  appId: requiredEnvVars.appId!,
-  measurementId: requiredEnvVars.measurementId!,
-};
-
-// Initialize Firebase
-export const firebaseApp = initializeApp(firebaseConfig);
-export const db = getFirestore(firebaseApp);
+export { firebaseApp, db };

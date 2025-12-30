@@ -17,6 +17,12 @@ export function useAuth(): UseAuthReturn {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    if (!auth) {
+      console.warn("Firebase auth is not initialized. Authentication features will not work.");
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(
       auth,
       (firebaseUser) => {
