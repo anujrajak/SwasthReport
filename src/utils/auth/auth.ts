@@ -14,7 +14,9 @@ export const auth: Auth | null = firebaseApp ? getAuth(firebaseApp) : null;
 
 export const signIn = async (): Promise<FirebaseUser | null> => {
   if (!auth) {
-    console.error("Firebase auth is not initialized. Please configure Firebase environment variables.");
+    const errorMsg = "Firebase auth is not initialized. Please configure Firebase environment variables.";
+    console.error(errorMsg);
+    alert(errorMsg);
     return null;
   }
   try {
@@ -22,6 +24,7 @@ export const signIn = async (): Promise<FirebaseUser | null> => {
     return result.user;
   } catch (error) {
     console.error("Signin failed", error);
+    alert("Sign in failed. Please try again.");
     return null;
   }
 };

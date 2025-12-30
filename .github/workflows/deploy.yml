@@ -36,6 +36,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Verify environment variables
+        run: |
+          if [ -z "${{ secrets.VITE_FIREBASE_API_KEY }}" ]; then
+            echo "❌ VITE_FIREBASE_API_KEY is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.VITE_FIREBASE_PROJECT_ID }}" ]; then
+            echo "❌ VITE_FIREBASE_PROJECT_ID is not set"
+            exit 1
+          fi
+          echo "✅ All required Firebase secrets are set"
+
       - name: Build
         env:
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}

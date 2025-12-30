@@ -45,7 +45,8 @@ export default function LoginPage() {
     const firebaseUser = await signIn();
 
     if (!firebaseUser?.uid) {
-      console.error("User ID is missing");
+      console.error("User ID is missing. Firebase may not be properly configured.");
+      alert("Unable to sign in. Please check that Firebase is properly configured.");
       return;
     }
 
