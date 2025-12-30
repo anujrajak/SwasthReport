@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 16, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/Pathology/patho-client/middleware.ts"],"sourcesContent":["import { NextResponse } from \"next/server\";\nimport type { NextRequest } from \"next/server\";\n\n/**\n * Middleware for route protection\n * Note: Firebase Auth is primarily client-side, so actual authentication\n * is handled by the AuthGuard component. This middleware can be extended\n * to verify Firebase ID tokens server-side if needed.\n */\nexport function middleware(request: NextRequest) {\n  // Add any server-side logic here if needed\n  // For now, client-side AuthGuard handles authentication\n  return NextResponse.next();\n}\n\nexport const config = {\n  matcher: [\n    /*\n     * Match all request paths except for the ones starting with:\n     * - api (API routes)\n     * - _next/static (static files)\n     * - _next/image (image optimization files)\n     * - favicon.ico (favicon file)\n     * - public files\n     */\n    \"/dashboard/:path*\",\n  ],\n};\n"],"names":[],"mappings":";;;;;;AAAA;AAAA;;AASO,SAAS,WAAW,OAAoB;IAC7C,2CAA2C;IAC3C,wDAAwD;IACxD,OAAO,iYAAY,CAAC,IAAI;AAC1B;AAEO,MAAM,SAAS;IACpB,SAAS;QACP;;;;;;;KAOC,GACD;KACD;AACH"}}]
-}
