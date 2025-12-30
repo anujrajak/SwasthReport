@@ -16,7 +16,7 @@ export function SidebarHeader() {
         </svg>
       </div>
       <div className="flex flex-col">
-        <span className="text-sm font-semibold">Pathology App</span>
+        <span className="text-sm font-semibold">Swasth Report</span>
       </div>
     </div>
   );
