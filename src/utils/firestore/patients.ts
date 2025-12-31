@@ -11,6 +11,7 @@ import {
   startAfter,
   QueryDocumentSnapshot,
   DocumentData,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { cleanFirestoreData } from "./clean-data";
@@ -22,6 +23,7 @@ export interface Patient {
   gender: string;
   phone: string;
   email?: string;
+  createdAt?: Timestamp;
 }
 
 export interface PatientWithId extends Patient {
@@ -94,6 +96,11 @@ export const createPatient = async (
   const cleanedData = cleanFirestoreData(patientData, {
     optionalStringFields: ["email"],
   });
+
+  // Add createdAt timestamp if not provided
+  if (!cleanedData.createdAt) {
+    cleanedData.createdAt = Timestamp.now();
+  }
 
   const patientsRef = collection(db, "users", userId, "patients");
   const newPatientRef = doc(patientsRef);

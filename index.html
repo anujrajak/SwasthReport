@@ -1,14 +1,106 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/SwasthReport/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Swasth Report</title>
+
+    <!-- Primary Meta Tags -->
+    <title>Swasth Report - Pathology Report Management System</title>
+    <meta
+      name="title"
+      content="Swasth Report - Pathology Report Management System"
+    />
+    <meta
+      name="description"
+      content="Professional pathology report management system for medical laboratories. Create, manage, and print pathology reports with ease. Streamline your lab operations with Swasth Report."
+    />
+    <meta
+      name="keywords"
+      content="pathology report, medical reports, lab management, pathology lab, medical software, report management, healthcare software, laboratory management system"
+    />
+    <meta name="author" content="Swasth Report" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="revisit-after" content="7 days" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="alternate icon" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://anujrajak.is-a.dev/SwasthReport/"
+    />
+    <meta
+      property="og:title"
+      content="Swasth Report - Pathology Report Management System"
+    />
+    <meta
+      property="og:description"
+      content="Professional pathology report management system for medical laboratories. Create, manage, and print pathology reports with ease."
+    />
+    <meta
+      property="og:image"
+      content="https://anujrajak.is-a.dev/SwasthReport/favicon.svg"
+    />
+    <meta property="og:site_name" content="Swasth Report" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:url"
+      content="https://anujrajak.is-a.dev/SwasthReport/"
+    />
+    <meta
+      name="twitter:title"
+      content="Swasth Report - Pathology Report Management System"
+    />
+    <meta
+      name="twitter:description"
+      content="Professional pathology report management system for medical laboratories. Create, manage, and print pathology reports with ease."
+    />
+    <meta
+      name="twitter:image"
+      content="https://anujrajak.is-a.dev/SwasthReport/favicon.svg"
+    />
+
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#0d9488" />
+    <meta name="msapplication-TileColor" content="#0d9488" />
+    <meta name="application-name" content="Swasth Report" />
+    <meta name="apple-mobile-web-app-title" content="Swasth Report" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://anujrajak.is-a.dev/SwasthReport/" />
+
+    <!-- Theme Detection Script -->
+    <script>
+      (function () {
+        const theme = localStorage.getItem("swasth-theme");
+        const systemPrefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        const shouldUseDark =
+          theme === "dark" ||
+          (theme === "system" && systemPrefersDark) ||
+          (!theme && systemPrefersDark);
+        if (shouldUseDark) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

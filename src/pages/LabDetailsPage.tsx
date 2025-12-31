@@ -44,6 +44,10 @@ const userSchema = z.object({
   enableHeaderFooter: z.boolean().default(true),
   topMargin: z.number().min(0).max(100).default(15),
   bottomMargin: z.number().min(0).max(100).default(15),
+  pathologistName: z.string().optional().or(z.literal("")),
+  pathologistTitle: z.string().optional().or(z.literal("")),
+  pathologistSignature: z.string().optional().or(z.literal("")),
+  labLogo: z.string().optional().or(z.literal("")),
 });
 
 type UserFormValues = z.infer<typeof userSchema>;
@@ -67,6 +71,10 @@ export default function LabDetailsPage() {
       enableHeaderFooter: true,
       topMargin: 15,
       bottomMargin: 15,
+      pathologistName: "",
+      pathologistTitle: "",
+      pathologistSignature: "",
+      labLogo: "",
     },
   });
 
@@ -102,6 +110,9 @@ export default function LabDetailsPage() {
             enableHeaderFooter: data.enableHeaderFooter ?? true,
             topMargin: data.topMargin ?? 15,
             bottomMargin: data.bottomMargin ?? 15,
+            pathologistName: data.pathologistName || "",
+            pathologistTitle: data.pathologistTitle || "",
+            pathologistSignature: data.pathologistSignature || "",
           });
         }
       } catch (error) {
@@ -121,6 +132,18 @@ export default function LabDetailsPage() {
       return;
     }
 
+    // Validate pathologist details if they're being set for the first time
+    if (!userData?.pathologistName) {
+      if (!values.pathologistName || values.pathologistName.trim() === "") {
+        toast.error("Pathologist name is required");
+        return;
+      }
+      if (!values.pathologistTitle || values.pathologistTitle.trim() === "") {
+        toast.error("Pathologist title is required");
+        return;
+      }
+    }
+
     const toastId = toast.loading("Saving lab details...");
 
     try {
@@ -136,6 +159,10 @@ export default function LabDetailsPage() {
         enableHeaderFooter: values.enableHeaderFooter,
         topMargin: values.topMargin,
         bottomMargin: values.bottomMargin,
+        pathologistName: values.pathologistName,
+        pathologistTitle: values.pathologistTitle,
+        pathologistSignature: values.pathologistSignature,
+        labLogo: values.labLogo,
       });
 
       // Update local state
@@ -153,6 +180,9 @@ export default function LabDetailsPage() {
         enableHeaderFooter: values.enableHeaderFooter,
         topMargin: values.topMargin,
         bottomMargin: values.bottomMargin,
+        pathologistName: values.pathologistName || undefined,
+        pathologistTitle: values.pathologistTitle || undefined,
+        pathologistSignature: values.pathologistSignature || undefined,
       });
 
       toast.success("Lab details updated successfully", { id: toastId });
@@ -312,6 +342,78 @@ export default function LabDetailsPage() {
 
               <FormField
                 control={form.control}
+                name="labLogo"
+                render={({ field }) => {
+                  const handleLogoUpload = (
+                    e: React.ChangeEvent<HTMLInputElement>
+                  ) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    // Validate file type
+                    if (!file.type.startsWith("image/")) {
+                      toast.error("Please upload an image file");
+                      return;
+                    }
+
+                    // Validate file size (max 2MB)
+                    if (file.size > 2 * 1024 * 1024) {
+                      toast.error("Image size should be less than 2MB");
+                      return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      const base64String = reader.result as string;
+                      field.onChange(base64String);
+                    };
+                    reader.onerror = () => {
+                      toast.error("Failed to read image file");
+                    };
+                    reader.readAsDataURL(file);
+                  };
+
+                  return (
+                    <FormItem>
+                      <FormLabel>Lab Logo/Image (Optional)</FormLabel>
+                      <FormControl>
+                        <>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoUpload}
+                          />
+                          {field.value && (
+                            <div className="mt-2">
+                              <img
+                                src={field.value}
+                                alt="Lab Logo Preview"
+                                className="max-w-[150px] max-h-[150px] border rounded-md"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => field.onChange("")}
+                                className="mt-1 text-red-500 hover:text-red-600"
+                              >
+                                Remove Logo
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      </FormControl>
+                      <FormDescription>
+                        Upload lab logo/image for report header (image, max 2MB).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+
+              <FormField
+                control={form.control}
                 name="labName"
                 render={({ field }) => (
                   <FormItem>
@@ -346,6 +448,189 @@ export default function LabDetailsPage() {
                     <FormMessage />
                   </FormItem>
                 )}
+              />
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <FormLabel>Lab Contacts</FormLabel>
+                    <FormDescription className="mt-0">
+                      Phone numbers for your laboratory (optional).
+                    </FormDescription>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => append("")}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Contact
+                  </Button>
+                </div>
+
+                {fields.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No contacts added. Click &quot;Add Contact&quot; to add a
+                    phone number.
+                  </p>
+                )}
+
+                {fields.map((field, index) => (
+                  <FormField
+                    key={field.id}
+                    control={form.control}
+                    name={`labContacts.${index}`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="flex gap-2">
+                            <Input
+                              type="tel"
+                              placeholder="Enter phone number"
+                              {...field}
+                              className="flex-1"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                const contactToRemove = fields[index];
+                                remove(index);
+                                toast.success(
+                                  `Contact "${
+                                    contactToRemove || "phone number"
+                                  }" removed`
+                                );
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Pathologist Details</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Once saved, these fields will be disabled. To modify, contact support.
+                </p>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="pathologistName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pathologist Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter pathologist name"
+                        {...field}
+                        disabled={!!userData?.pathologistName}
+                        className={userData?.pathologistName ? "bg-muted" : ""}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Full name of the pathologist (required).
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="pathologistTitle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pathologist Title</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter pathologist title (e.g., MD, PhD)"
+                        {...field}
+                        disabled={!!userData?.pathologistName}
+                        className={userData?.pathologistName ? "bg-muted" : ""}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Professional title or designation (required).
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="pathologistSignature"
+                render={({ field }) => {
+                  const handleSignatureUpload = (
+                    e: React.ChangeEvent<HTMLInputElement>
+                  ) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    // Check if file is an image
+                    if (!file.type.startsWith("image/")) {
+                      toast.error("Please upload an image file");
+                      return;
+                    }
+
+                    // Check file size (max 2MB)
+                    if (file.size > 2 * 1024 * 1024) {
+                      toast.error("Image size should be less than 2MB");
+                      return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      const base64String = reader.result as string;
+                      field.onChange(base64String);
+                    };
+                    reader.onerror = () => {
+                      toast.error("Failed to read image file");
+                    };
+                    reader.readAsDataURL(file);
+                  };
+
+                  return (
+                    <FormItem>
+                      <FormLabel>Signature</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleSignatureUpload}
+                            disabled={!!userData?.pathologistName}
+                            className={userData?.pathologistName ? "bg-muted" : ""}
+                          />
+                          {field.value && (
+                            <div className="mt-2">
+                              <img
+                                src={field.value}
+                                alt="Signature preview"
+                                className="max-w-xs border rounded p-2 bg-white"
+                                style={{ maxHeight: "100px" }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        Upload pathologist signature image (optional). Will be saved as base64.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <div className="border-t pt-6">
@@ -426,72 +711,6 @@ export default function LabDetailsPage() {
                 </>
               )}
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <FormLabel>Lab Contacts</FormLabel>
-                    <FormDescription className="mt-0">
-                      Phone numbers for your laboratory (optional).
-                    </FormDescription>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => append("")}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Contact
-                  </Button>
-                </div>
-
-                {fields.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    No contacts added. Click &quot;Add Contact&quot; to add a
-                    phone number.
-                  </p>
-                )}
-
-                {fields.map((field, index) => (
-                  <FormField
-                    key={field.id}
-                    control={form.control}
-                    name={`labContacts.${index}`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <div className="flex gap-2">
-                            <Input
-                              type="tel"
-                              placeholder="Enter phone number"
-                              {...field}
-                              className="flex-1"
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              onClick={() => {
-                                const contactToRemove = fields[index];
-                                remove(index);
-                                toast.success(
-                                  `Contact "${
-                                    contactToRemove || "phone number"
-                                  }" removed`
-                                );
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ))}
-              </div>
-
               <div className="flex justify-end gap-4 pt-4 border-t">
                 <Button
                   type="button"
@@ -513,6 +732,9 @@ export default function LabDetailsPage() {
                         enableHeaderFooter: userData.enableHeaderFooter ?? true,
                         topMargin: userData.topMargin ?? 15,
                         bottomMargin: userData.bottomMargin ?? 15,
+                        pathologistName: userData.pathologistName || "",
+                        pathologistTitle: userData.pathologistTitle || "",
+                        pathologistSignature: userData.pathologistSignature || "",
                       });
                     }
                   }}

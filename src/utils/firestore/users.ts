@@ -13,6 +13,10 @@ export interface User {
   enableHeaderFooter?: boolean;
   topMargin?: number;
   bottomMargin?: number;
+  pathologistName?: string;
+  pathologistTitle?: string;
+  pathologistSignature?: string; // base64 string
+  labLogo?: string; // base64 string or URL for lab logo/image
 }
 
 export const getUser = async (uid: string): Promise<User | null> => {
@@ -51,7 +55,11 @@ export const updateUser = async (
         (key === "phone" ||
           key === "photoURL" ||
           key === "labName" ||
-          key === "labAddress") &&
+          key === "labAddress" ||
+          key === "pathologistName" ||
+          key === "pathologistTitle" ||
+          key === "pathologistSignature" ||
+          key === "labLogo") &&
         value === ""
       ) {
         cleanedData[key] = null;

@@ -35,10 +35,14 @@ export interface TestResults {
 }
 
 export interface Report {
-  date: Timestamp;
+  date: Timestamp; // Reported date (kept for backward compatibility)
   doctor: string; // Reference or "Self" as default
   title?: string;
   tests: TestResults;
+  registeredDate?: Timestamp; // When patient was registered
+  collectedDate?: Timestamp; // When sample was collected
+  verified?: boolean; // Whether report is verified
+  reportedDate?: Timestamp; // Date and time when report was verified/reported
 }
 
 export interface ReportWithId extends Report {
@@ -109,7 +113,11 @@ export const getReport = async (
 export const createReport = async (
   userId: string,
   patientId: string,
-  reportData: Omit<Report, "date"> & { date?: Date | Timestamp }
+  reportData: Omit<Report, "date" | "registeredDate" | "collectedDate"> & { 
+    date?: Date | Timestamp;
+    registeredDate?: Date | Timestamp;
+    collectedDate?: Date | Timestamp;
+  }
 ): Promise<string> => {
   // Convert date to Timestamp if it's a Date
   const date =
@@ -117,15 +125,30 @@ export const createReport = async (
       ? Timestamp.fromDate(reportData.date)
       : reportData.date || Timestamp.now();
 
+  const registeredDate = reportData.registeredDate
+    ? reportData.registeredDate instanceof Date
+      ? Timestamp.fromDate(reportData.registeredDate)
+      : reportData.registeredDate
+    : undefined;
+
+  const collectedDate = reportData.collectedDate
+    ? reportData.collectedDate instanceof Date
+      ? Timestamp.fromDate(reportData.collectedDate)
+      : reportData.collectedDate
+    : Timestamp.now();
+
   const dataToSave: Report = {
     date,
     doctor: reportData.doctor || "Self",
+    title: reportData.title,
     tests: reportData.tests,
-    comments: reportData.comments,
+    registeredDate,
+    collectedDate,
+    verified: false, // Default to false
   };
 
   const cleanedData = cleanFirestoreData(dataToSave, {
-    optionalStringFields: ["comments"],
+    optionalStringFields: ["title"],
   });
 
   const reportsRef = collection(
@@ -158,11 +181,11 @@ export const updateReport = async (
   if (reportData.doctor !== undefined) {
     dataToSave.doctor = reportData.doctor;
   }
+  if (reportData.title !== undefined) {
+    dataToSave.title = reportData.title;
+  }
   if (reportData.tests !== undefined) {
     dataToSave.tests = reportData.tests;
-  }
-  if (reportData.comments !== undefined) {
-    dataToSave.comments = reportData.comments;
   }
 
   // Convert date to Timestamp if it's a Date
@@ -174,7 +197,7 @@ export const updateReport = async (
   }
 
   const cleanedData = cleanFirestoreData(dataToSave, {
-    optionalStringFields: ["comments"],
+    optionalStringFields: ["title"],
   });
 
   const reportRef = doc(
@@ -187,6 +210,34 @@ export const updateReport = async (
     reportId
   );
   await setDoc(reportRef, cleanedData, { merge: true });
+};
+
+/**
+ * Verify a report
+ */
+export const verifyReport = async (
+  userId: string,
+  patientId: string,
+  reportId: string
+): Promise<void> => {
+  const reportRef = doc(
+    db,
+    "users",
+    userId,
+    "patients",
+    patientId,
+    "reports",
+    reportId
+  );
+  
+  await setDoc(
+    reportRef,
+    {
+      verified: true,
+      reportedDate: Timestamp.now(),
+    },
+    { merge: true }
+  );
 };
 
 /**

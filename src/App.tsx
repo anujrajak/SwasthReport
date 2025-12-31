@@ -19,6 +19,8 @@ function App() {
         defaultTheme="system"
         enableSystem
         disableTransitionOnChange
+        storageKey="swasth-theme"
+        suppressHydrationWarning
       >
         <Routes>
           <Route path="/" element={<LoginPage />} />

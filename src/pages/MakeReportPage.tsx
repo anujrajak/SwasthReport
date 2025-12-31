@@ -1,10 +1,13 @@
-
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/hooks/useAuth";
-import { getPatients, getPatient, type PatientWithId } from "@/utils/firestore/patients";
+import {
+  getPatients,
+  getPatient,
+  type PatientWithId,
+} from "@/utils/firestore/patients";
 import { useSearchParams } from "react-router-dom";
 import { createReport } from "@/utils/firestore/reports";
 import { testsData } from "@/lib/constants/tests-data";
@@ -74,7 +77,7 @@ const testParameterSchema = z.object({
 const testSchema = z.object({
   testId: z.string().min(1, "Please select a test"),
   parameters: z.array(testParameterSchema),
-  comment: z.string().optional(),
+  comment: z.string().optional().or(z.literal("")),
 });
 
 const reportSchema = z.object({
@@ -88,8 +91,9 @@ const reportSchema = z.object({
     .optional()
     .or(z.literal("")),
   doctor: z.string().min(1, "Doctor name is required"),
-  date: z.date(),
   title: z.string().optional(),
+  registeredDate: z.date(),
+  collectedDate: z.date(),
   tests: z.array(testSchema).min(1, "At least one test is required"),
 });
 
@@ -116,8 +120,9 @@ export default function MakeReportPage() {
       patientPhone: "",
       patientEmail: "",
       doctor: "Self",
-      date: new Date(),
       title: "",
+      registeredDate: new Date(), // Will be updated when patient is selected
+      collectedDate: new Date(), // Default to today
       tests: [],
     },
   });
@@ -149,7 +154,7 @@ export default function MakeReportPage() {
           return;
         }
       }
-      
+
       // If not found in list or list not loaded yet, fetch it directly
       getPatient(firebaseUser.uid, patientIdFromUrl)
         .then((patientData) => {
@@ -192,6 +197,18 @@ export default function MakeReportPage() {
     );
     form.setValue("patientPhone", patient.phone);
     form.setValue("patientEmail", patient.email || "");
+
+    // Set registered date from patient's createdAt
+    const registeredDate = patient.createdAt
+      ? patient.createdAt instanceof Timestamp
+        ? patient.createdAt.toDate()
+        : patient.createdAt
+      : new Date(); // Fallback to current date if no createdAt
+    form.setValue("registeredDate", registeredDate);
+
+    // Set collected date to today
+    form.setValue("collectedDate", new Date());
+
     setOpen(false);
     toast.success(`Patient "${patient.name}" selected`);
   };
@@ -313,29 +330,61 @@ export default function MakeReportPage() {
           };
         });
 
-        testsDataForReport[test.testId] = {
+        // Only include comment if it has a value
+        const testData: {
+          name: string;
+          category: string;
+          parameters: Record<
+            string,
+            {
+              value: number | string;
+              unit: string;
+              range: string | Record<string, string>;
+            }
+          >;
+          comment?: string;
+        } = {
           name: testInfo.name,
           category: testInfo.category,
           parameters: parametersData,
-          comment: test.comment || undefined,
         };
+
+        // Only add comment if it exists and is not empty
+        if (test.comment && test.comment.trim() !== "") {
+          testData.comment = test.comment.trim();
+        }
+
+        testsDataForReport[test.testId] = testData;
       });
 
       // Create report with form values
-      const reportDate = values.date
-        ? Timestamp.fromDate(values.date)
+      // Use collectedDate as the main date for backward compatibility
+      const reportDate = values.collectedDate
+        ? Timestamp.fromDate(values.collectedDate)
+        : Timestamp.now();
+
+      const registeredDate = values.registeredDate
+        ? Timestamp.fromDate(values.registeredDate)
+        : Timestamp.now();
+
+      const collectedDate = values.collectedDate
+        ? Timestamp.fromDate(values.collectedDate)
         : Timestamp.now();
 
       await createReport(firebaseUser.uid, selectedPatient.id, {
-        date: reportDate,
+        date: reportDate, // Use collectedDate for backward compatibility
         doctor: values.doctor,
         title: values.title || "",
         tests: testsDataForReport,
+        registeredDate,
+        collectedDate,
       });
 
       const testCount = values.tests.length;
       toast.success(
-        `Report created successfully for ${selectedPatient.name} (${testCount} test${testCount !== 1 ? "s" : ""})`,
+        `Report created successfully for ${
+          selectedPatient.name
+        } (${testCount} test${testCount !== 1 ? "s" : ""})`,
         { id: toastId }
       );
 
@@ -347,8 +396,9 @@ export default function MakeReportPage() {
         patientPhone: "",
         patientEmail: "",
         doctor: "Self",
-        date: new Date(),
         title: "",
+        registeredDate: new Date(),
+        collectedDate: new Date(),
         tests: [],
       });
       setSelectedPatient(null);
@@ -356,7 +406,20 @@ export default function MakeReportPage() {
       setOpenCards({});
     } catch (error) {
       console.error("Failed to create report:", error);
-      toast.error("Failed to create report. Please try again.", { id: toastId });
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      console.error("Error details:", {
+        error,
+        errorMessage,
+        patientId: selectedPatient?.id,
+        doctor: values.doctor,
+        title: values.title,
+        testCount: values.tests.length,
+      });
+      toast.error(
+        `Failed to create report: ${errorMessage}. Please check the console for details.`,
+        { id: toastId }
+      );
     }
   };
 
@@ -439,7 +502,10 @@ export default function MakeReportPage() {
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[400px] p-0 z-[100]" align="start">
+                      <PopoverContent
+                        className="w-[400px] p-0 z-[100]"
+                        align="start"
+                      >
                         <Command>
                           <CommandInput placeholder="Search patients..." />
                           <CommandList>
@@ -496,10 +562,7 @@ export default function MakeReportPage() {
                     <FormItem>
                       <FormLabel>Name</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Patient name"
-                          {...field}
-                        />
+                        <Input placeholder="Patient name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -582,14 +645,28 @@ export default function MakeReportPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="Email address (optional)"
-                          {...field}
-                        />
-                      </FormControl>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="Email address (optional)"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormDescription>Email address (optional)</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="doctor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Doctor</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Doctor name" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -598,13 +675,28 @@ export default function MakeReportPage() {
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="doctor"
+                  name="registeredDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Doctor</FormLabel>
+                      <FormLabel>Registered Date</FormLabel>
                       <FormControl>
-                        <Input placeholder="Doctor name" {...field} />
+                        <Input
+                          type="date"
+                          value={
+                            field.value
+                              ? new Date(field.value)
+                                  .toISOString()
+                                  .split("T")[0]
+                              : ""
+                          }
+                          disabled
+                          className="bg-muted"
+                        />
                       </FormControl>
+                      <FormDescription>
+                        Date when patient was registered (auto-filled from
+                        patient record)
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -612,14 +704,13 @@ export default function MakeReportPage() {
 
                 <FormField
                   control={form.control}
-                  name="date"
+                  name="collectedDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date</FormLabel>
+                      <FormLabel>Collected Date</FormLabel>
                       <FormControl>
                         <Input
                           type="date"
-                          {...field}
                           value={
                             field.value
                               ? new Date(field.value)
@@ -632,6 +723,9 @@ export default function MakeReportPage() {
                           }}
                         />
                       </FormControl>
+                      <FormDescription>
+                        Date when sample was collected (defaults to today)
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -675,7 +769,10 @@ export default function MakeReportPage() {
                     const isOpen = openCards[index] ?? true; // Default to open for new cards
 
                     return (
-                      <Card key={field.id} className="relative overflow-visible">
+                      <Card
+                        key={field.id}
+                        className="relative overflow-visible"
+                      >
                         <Collapsible
                           open={isOpen}
                           onOpenChange={(open) =>
@@ -713,7 +810,9 @@ export default function MakeReportPage() {
                                     : null;
                                   remove(index);
                                   if (testInfo) {
-                                    toast.success(`Test "${testInfo.name}" removed`);
+                                    toast.success(
+                                      `Test "${testInfo.name}" removed`
+                                    );
                                   }
                                   // Reindex remaining cards after removal
                                   setOpenCards((prev) => {
@@ -923,12 +1022,24 @@ export default function MakeReportPage() {
                                 name={`tests.${index}.comment`}
                                 render={({ field }) => (
                                   <FormItem className="pt-4 border-t">
-                                    <FormLabel>Test Comments</FormLabel>
+                                    <FormLabel>
+                                      Test Comments (Optional)
+                                    </FormLabel>
                                     <FormControl>
                                       <Textarea
-                                        placeholder="Add comments for this test..."
+                                        placeholder="Add comments for this test (optional)..."
                                         className="min-h-20"
-                                        {...field}
+                                        value={field.value || ""}
+                                        onChange={(e) => {
+                                          const value = e.target.value;
+                                          field.onChange(
+                                            value === "" || value.trim() === ""
+                                              ? undefined
+                                              : value
+                                          );
+                                        }}
+                                        onBlur={field.onBlur}
+                                        ref={field.ref}
                                       />
                                     </FormControl>
                                     <FormDescription>
@@ -959,7 +1070,9 @@ export default function MakeReportPage() {
                       patientPhone: "",
                       patientEmail: "",
                       doctor: "Self",
-                      date: new Date(),
+                      title: "",
+                      registeredDate: new Date(), // Will be updated when patient is selected
+                      collectedDate: new Date(),
                       tests: [],
                     });
                     setSelectedPatient(null);
