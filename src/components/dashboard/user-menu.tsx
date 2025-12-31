@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { LogOut, User, ChevronsUpDown } from "lucide-react";
+import { MdSupportAgent } from "react-icons/md";
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -117,6 +118,10 @@ export function UserMenu() {
             <DropdownMenuItem onClick={() => navigate("/dashboard/lab-details")}>
               <User />
               Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/dashboard/support")}>
+              <MdSupportAgent />
+              Support
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>

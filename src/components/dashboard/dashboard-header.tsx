@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Loader2, User } from "lucide-react";
+import { MdSupportAgent } from "react-icons/md";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -167,6 +169,17 @@ export function DashboardHeader() {
             </Command>
           </PopoverContent>
         </Popover>
+      </div>
+      <div className="ml-auto">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate("/dashboard/support")}
+          className="gap-2"
+        >
+          <MdSupportAgent className="h-4 w-4" />
+          <span className="hidden sm:inline">Support</span>
+        </Button>
       </div>
     </header>
   );

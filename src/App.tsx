@@ -10,6 +10,7 @@ import PatientReportsPage from './pages/PatientReportsPage'
 import MakeReportPage from './pages/MakeReportPage'
 import LabDetailsPage from './pages/LabDetailsPage'
 import ReportsPage from './pages/ReportsPage'
+import SupportPage from './pages/SupportPage'
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
             <Route path="make-report" element={<MakeReportPage />} />
             <Route path="lab-details" element={<LabDetailsPage />} />
             <Route path="reports" element={<ReportsPage />} />
+            <Route path="support" element={<SupportPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

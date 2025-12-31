@@ -386,4 +386,78 @@ export const getAllReports = async (
   };
 };
 
+/**
+ * Get all pending verification reports (where verified is false or undefined)
+ * Returns reports sorted by date descending
+ */
+export const getPendingVerificationReports = async (
+  userId: string,
+  limitCount: number = 50
+): Promise<ReportWithPatientInfo[]> => {
+  // Get all patients - fetch in batches if needed
+  const allPatients: Awaited<ReturnType<typeof getPatients>>["patients"] = [];
+  let lastDoc: QueryDocumentSnapshot<DocumentData> | null = null;
+  let hasMorePatients = true;
+
+  while (hasMorePatients) {
+    const patientsResult = await getPatients(userId, 1000, lastDoc);
+    allPatients.push(...patientsResult.patients);
+    lastDoc = patientsResult.lastDoc;
+    hasMorePatients = patientsResult.hasMore;
+  }
+
+  // Get all reports from all patients
+  const allReports: ReportWithPatientInfo[] = [];
+
+  for (const patient of allPatients) {
+    try {
+      const reportsRef = collection(
+        db,
+        "users",
+        userId,
+        "patients",
+        patient.id,
+        "reports"
+      );
+
+      // Try to query with orderBy, but if it fails (no index), query without orderBy
+      let querySnapshot;
+      try {
+        const q = query(reportsRef, orderBy("date", "desc"));
+        querySnapshot = await getDocs(q);
+      } catch (error) {
+        // If orderBy fails (likely missing index), fetch without orderBy and sort in memory
+        console.warn(`Failed to query reports with orderBy for patient ${patient.id}, fetching without orderBy:`, error);
+        querySnapshot = await getDocs(reportsRef);
+      }
+
+      querySnapshot.docs.forEach((doc) => {
+        const reportData = doc.data() as Report;
+        // Only add if report has required fields and is not verified
+        if (reportData.date && reportData.tests && (reportData.verified === false || reportData.verified === undefined)) {
+          allReports.push({
+            id: doc.id,
+            patientId: patient.id,
+            patientName: patient.name,
+            ...reportData,
+          });
+        }
+      });
+    } catch (error) {
+      // Log error but continue with other patients
+      console.error(`Error fetching reports for patient ${patient.id}:`, error);
+    }
+  }
+
+  // Sort all reports by date descending
+  allReports.sort((a, b) => {
+    const dateA = a.date instanceof Timestamp ? a.date.toMillis() : a.date.getTime();
+    const dateB = b.date instanceof Timestamp ? b.date.toMillis() : b.date.getTime();
+    return dateB - dateA; // Descending order
+  });
+
+  // Return limited results
+  return allReports.slice(0, limitCount);
+};
+
 
