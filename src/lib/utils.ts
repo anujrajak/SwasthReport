@@ -73,3 +73,56 @@ export function sortParametersByConstantsOrder(
 
   return result;
 }
+
+/**
+ * Calculates a formula-based parameter value
+ * @param formula - The formula string (e.g., "Hemoglobin * 10 / RBC Count")
+ * @param parameters - Map of parameter names to their values
+ * @returns Calculated value or null if calculation fails
+ */
+export function calculateFormula(
+  formula: string,
+  parameters: Record<string, number | string | undefined>
+): number | null {
+  if (!formula) return null;
+
+  try {
+    // Replace parameter names with their values
+    let expression = formula;
+    const paramNames = Object.keys(parameters).sort((a, b) => b.length - a.length); // Sort by length to match longer names first
+    
+    for (const paramName of paramNames) {
+      const value = parameters[paramName];
+      if (value !== undefined && value !== null && value !== "") {
+        const numValue = typeof value === "string" ? parseFloat(value) : value;
+        if (!isNaN(numValue)) {
+          // Replace parameter name with its numeric value
+          const regex = new RegExp(`\\b${paramName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'g');
+          expression = expression.replace(regex, String(numValue));
+        }
+      }
+    }
+
+    // Check if expression still contains non-numeric characters (should only have numbers, operators, spaces)
+    // Allow: numbers, +, -, *, /, (, ), ., and spaces
+    const sanitized = expression.replace(/\s/g, ''); // Remove spaces first
+    const validPattern = /^[0-9+\-*/().]+$/;
+    
+    if (!validPattern.test(sanitized)) {
+      return null; // Invalid characters found
+    }
+
+    // Use Function constructor for safe evaluation
+    const result = Function(`"use strict"; return (${sanitized})`)();
+    
+    if (typeof result === 'number' && !isNaN(result) && isFinite(result)) {
+      // Round to 2 decimal places
+      return Math.round(result * 100) / 100;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Formula calculation error:", error);
+    return null;
+  }
+}

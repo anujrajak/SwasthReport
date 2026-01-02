@@ -21,8 +21,18 @@ export const testsData = {
         range: { male: "41 - 53", female: "36 - 46" },
       },
       { name: "MCV", unit: "fL", range: "80 - 100" },
-      { name: "MCH", unit: "pg", range: "27 - 33" },
-      { name: "MCHC", unit: "g/dL", range: "31 - 36" },
+      {
+        name: "MCH",
+        unit: "pg",
+        range: "27 - 33",
+        formula: "Hemoglobin * 10 / RBC Count",
+      },
+      {
+        name: "MCHC",
+        unit: "g/dL",
+        range: "31 - 36",
+        formula: "Hemoglobin * 100 / Hematocrit (PCV)",
+      },
       { name: "RDW-CV", unit: "%", range: "11.5 - 14.5" },
       { name: "Neutrophils", unit: "%", range: "40 - 60" },
       { name: "Lymphocytes", unit: "%", range: "20 - 40" },
@@ -38,7 +48,12 @@ export const testsData = {
     parameters: [
       { name: "Bilirubin Total", unit: "mg/dL", range: "0.3 - 1.2" },
       { name: "Bilirubin Direct", unit: "mg/dL", range: "0.0 - 0.3" },
-      { name: "Bilirubin Indirect", unit: "mg/dL", range: "0.2 - 0.8" },
+      {
+        name: "Bilirubin Indirect",
+        unit: "mg/dL",
+        range: "0.2 - 0.8",
+        formula: "Bilirubin Total - Bilirubin Direct",
+      },
       { name: "SGPT (ALT)", unit: "U/L", range: "7 - 56" },
       { name: "SGOT (AST)", unit: "U/L", range: "5 - 40" },
       { name: "Alkaline Phosphatase (ALP)", unit: "U/L", range: "44 - 147" },
@@ -623,7 +638,16 @@ export const testsData = {
       { name: "Sodium", unit: "mmol/L", range: "135 - 145" },
       { name: "Potassium", unit: "mmol/L", range: "3.5 - 5.0" },
       { name: "Chloride", unit: "mmol/L", range: "98 - 106" },
+
       { name: "Bilirubin Total", unit: "mg/dL", range: "0.3 - 1.2" },
+      { name: "Bilirubin Direct", unit: "mg/dL", range: "0.0 - 0.3" },
+      {
+        name: "Bilirubin Indirect",
+        unit: "mg/dL",
+        range: "0.2 - 0.9",
+        formula: "Bilirubin Total - Bilirubin Direct",
+      },
+
       { name: "AST (SGOT)", unit: "U/L", range: "5 - 40" },
       { name: "ALT (SGPT)", unit: "U/L", range: "7 - 56" },
     ],

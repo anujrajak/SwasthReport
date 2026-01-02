@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -61,8 +61,17 @@ import {
   Plus,
   X,
   ChevronDown,
+  Info,
+  RotateCcw,
+  RefreshCw,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, calculateFormula } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Collapsible,
   CollapsibleContent,
@@ -110,6 +119,7 @@ export default function MakeReportPage() {
   );
   const [testPopovers, setTestPopovers] = useState<Record<number, boolean>>({});
   const [openCards, setOpenCards] = useState<Record<number, boolean>>({});
+  const [manuallyEditedParams, setManuallyEditedParams] = useState<Set<string>>(new Set());
 
   const form = useForm<ReportFormValues>({
     resolver: zodResolver(reportSchema),
@@ -131,6 +141,103 @@ export default function MakeReportPage() {
     control: form.control,
     name: "tests",
   });
+
+  // Watch all test parameters for formula calculations
+  const allTestValues = form.watch("tests");
+
+  // Function to recalculate formulas for a specific test
+  const recalculateFormulas = useCallback((testIndex: number) => {
+    const currentTests = form.getValues("tests");
+    const test = currentTests[testIndex];
+    if (!test?.testId) return;
+    
+    const testData = testsData[test.testId as keyof typeof testsData];
+    if (!testData) return;
+
+    const parameters = test.parameters || [];
+    const paramValues: Record<string, number | string | undefined> = {};
+    
+    // Build map of parameter values - use exact parameter names from constants
+    // Match form parameters with constants parameters by index
+    parameters.forEach((param, idx) => {
+      if (idx < testData.parameters.length) {
+        const paramDefName = testData.parameters[idx].name;
+        if (param.value !== undefined && param.value !== null && param.value !== "") {
+          const numValue = typeof param.value === "string" ? parseFloat(param.value) : param.value;
+          if (!isNaN(numValue) && isFinite(numValue)) {
+            // Use the parameter name from constants (not from form, in case they differ)
+            paramValues[paramDefName] = numValue;
+            // Also add the form parameter name in case formula uses it
+            if (param.name !== paramDefName) {
+              paramValues[param.name] = numValue;
+            }
+          }
+        }
+      }
+    });
+
+
+    // Check each parameter for formulas and calculate
+    parameters.forEach((param, paramIndex) => {
+      const paramDef = testData.parameters[paramIndex];
+      if (paramDef?.formula) {
+        const paramKey = `${test.testId}-${param.name}`;
+        const wasManuallyEdited = manuallyEditedParams.has(paramKey);
+        
+        // Only auto-calculate if not manually edited AND field is empty
+        // Once a value is set, it won't auto-update unless refresh icon is clicked
+        if (!wasManuallyEdited) {
+          const currentValue = form.getValues(`tests.${testIndex}.parameters.${paramIndex}.value`);
+          
+          // Only calculate if the field is empty
+          if (currentValue === undefined || currentValue === "" || currentValue === null) {
+            const calculatedValue = calculateFormula(paramDef.formula, paramValues);
+            
+            if (calculatedValue !== null) {
+              const calculatedStr = String(calculatedValue);
+              form.setValue(
+                `tests.${testIndex}.parameters.${paramIndex}.value`,
+                calculatedStr,
+                { shouldValidate: false, shouldDirty: false }
+              );
+              // Mark as manually edited so it won't auto-update when dependencies change
+              setManuallyEditedParams(prev => new Set(prev).add(paramKey));
+            }
+          }
+        }
+      }
+    });
+  }, [form, manuallyEditedParams]);
+
+  // Calculate formula values when parameters change
+  useEffect(() => {
+    // Use a small delay to ensure form values are updated
+    const timeoutId = setTimeout(() => {
+      allTestValues.forEach((_, testIndex) => {
+        recalculateFormulas(testIndex);
+      });
+    }, 100); // Delay to ensure form state is updated
+
+    return () => clearTimeout(timeoutId);
+  }, [allTestValues, recalculateFormulas]);
+
+  // Also watch for individual parameter changes more directly
+  const watchedParams = form.watch((data) => {
+    return data.tests?.map(test => 
+      test.parameters?.map(p => p.value)
+    );
+  });
+  
+  useEffect(() => {
+    if (watchedParams) {
+      const timeoutId = setTimeout(() => {
+        allTestValues.forEach((_, testIndex) => {
+          recalculateFormulas(testIndex);
+        });
+      }, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [watchedParams, recalculateFormulas, allTestValues]);
 
   useEffect(() => {
     if (!firebaseUser?.uid) {
@@ -221,6 +328,17 @@ export default function MakeReportPage() {
       name: param.name,
       value: undefined,
     }));
+
+    // Clear manual edit flags for this test
+    setManuallyEditedParams(prev => {
+      const newSet = new Set(prev);
+      Array.from(newSet).forEach(key => {
+        if (key.startsWith(`${testId}-`)) {
+          newSet.delete(key);
+        }
+      });
+      return newSet;
+    });
 
     form.setValue(`tests.${testIndex}.testId`, testId);
     form.setValue(`tests.${testIndex}.parameters`, parameters);
@@ -808,6 +926,19 @@ export default function MakeReportPage() {
                                   const testInfo = testToRemove?.testId
                                     ? getSelectedTest(testToRemove.testId)
                                     : null;
+                                  // Clean up manual edit flags for this test
+                                  if (testToRemove?.testId) {
+                                    setManuallyEditedParams(prev => {
+                                      const newSet = new Set(prev);
+                                      Array.from(newSet).forEach(key => {
+                                        if (key.startsWith(`${testToRemove.testId}-`)) {
+                                          newSet.delete(key);
+                                        }
+                                      });
+                                      return newSet;
+                                    });
+                                  }
+                                  
                                   remove(index);
                                   if (testInfo) {
                                     toast.success(
@@ -961,15 +1092,49 @@ export default function MakeReportPage() {
                                         }
                                       }
 
+                                      const hasFormula = !!paramDef.formula;
+                                      const currentValue = form.watch(`tests.${index}.parameters.${paramIndex}.value`);
+                                      const isCalculated = hasFormula && currentValue !== undefined && currentValue !== "";
+                                      const paramKey = selectedTest ? `${selectedTest.id}-${param.name}` : `${index}-${paramIndex}`;
+                                      const wasManuallyEdited = hasFormula && manuallyEditedParams.has(paramKey);
+
                                       return (
                                         <div
                                           key={paramIndex}
                                           className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 items-end"
                                         >
                                           <div>
-                                            <FormLabel className="text-sm font-normal">
-                                              {paramDef.name}
-                                            </FormLabel>
+                                            <div className="flex items-center gap-1">
+                                              <FormLabel className="text-sm font-normal">
+                                                {paramDef.name}
+                                              </FormLabel>
+                                              {hasFormula && (
+                                                <TooltipProvider>
+                                                  <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                      <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 cursor-help hover:text-blue-700 dark:hover:text-blue-300 transition-colors" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent 
+                                                      className="max-w-xs bg-popover border border-border shadow-lg"
+                                                      sideOffset={5}
+                                                    >
+                                                      <div className="space-y-2 text-popover-foreground">
+                                                        <p className="font-semibold text-sm">Calculated Parameter</p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                          This value is calculated using the formula:
+                                                        </p>
+                                                        <p className="text-sm font-mono bg-muted dark:bg-muted/50 text-foreground p-2 rounded border border-border">
+                                                          {paramDef.name} = {paramDef.formula}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                          You can modify this value if needed.
+                                                        </p>
+                                                      </div>
+                                                    </TooltipContent>
+                                                  </Tooltip>
+                                                </TooltipProvider>
+                                              )}
+                                            </div>
                                             <p className="text-xs text-muted-foreground">
                                               Range: {range} {paramDef.unit}
                                             </p>
@@ -980,25 +1145,117 @@ export default function MakeReportPage() {
                                             render={({ field }) => (
                                               <FormItem>
                                                 <FormControl>
-                                                  <Input
-                                                    type="text"
-                                                    placeholder="Value"
-                                                    {...field}
-                                                    value={
-                                                      field.value !== undefined
-                                                        ? String(field.value)
-                                                        : ""
-                                                    }
-                                                    onChange={(e) => {
-                                                      const value =
-                                                        e.target.value;
-                                                      field.onChange(
-                                                        value === ""
-                                                          ? undefined
-                                                          : value
-                                                      );
-                                                    }}
-                                                  />
+                                                  <TooltipProvider>
+                                                    <Tooltip>
+                                                      <TooltipTrigger asChild>
+                                                        <div className="relative">
+                                                          <Input
+                                                            type="text"
+                                                            placeholder="Value"
+                                                            {...field}
+                                                            value={
+                                                              field.value !== undefined
+                                                                ? String(field.value)
+                                                                : ""
+                                                            }
+                                                              onChange={(e) => {
+                                                                const value =
+                                                                  e.target.value;
+                                                                // Mark as manually edited if it's a formula parameter and user is typing
+                                                                if (hasFormula && value !== "") {
+                                                                  const paramKey = selectedTest ? `${selectedTest.id}-${param.name}` : `${index}-${paramIndex}`;
+                                                                  setManuallyEditedParams(prev => new Set(prev).add(paramKey));
+                                                                }
+                                                                field.onChange(
+                                                                  value === ""
+                                                                    ? undefined
+                                                                    : value
+                                                                );
+                                                                // Don't trigger auto-recalculation - only update via refresh icon
+                                                              }}
+                                                            className={isCalculated ? "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 pr-10" : ""}
+                                                          />
+                                                          {hasFormula && (
+                                                            <Button
+                                                              type="button"
+                                                              variant="ghost"
+                                                              size="sm"
+                                                              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                                                              onClick={() => {
+                                                                // Temporarily remove from manually edited set to allow recalculation
+                                                                setManuallyEditedParams(prev => {
+                                                                  const newSet = new Set(prev);
+                                                                  newSet.delete(paramKey);
+                                                                  return newSet;
+                                                                });
+                                                                
+                                                                // Get current parameter values for calculation
+                                                                const currentTests = form.getValues("tests");
+                                                                const currentTest = currentTests[index];
+                                                                if (!currentTest?.testId) return;
+                                                                
+                                                                const testData = testsData[currentTest.testId as keyof typeof testsData];
+                                                                if (!testData) return;
+                                                                
+                                                                const currentParams = currentTest.parameters || [];
+                                                                const paramValues: Record<string, number | string | undefined> = {};
+                                                                
+                                                                // Build map of parameter values
+                                                                currentParams.forEach((p, idx) => {
+                                                                  if (idx < testData.parameters.length) {
+                                                                    const pDefName = testData.parameters[idx].name;
+                                                                    if (p.value !== undefined && p.value !== null && p.value !== "") {
+                                                                      const numValue = typeof p.value === "string" ? parseFloat(p.value) : p.value;
+                                                                      if (!isNaN(numValue) && isFinite(numValue)) {
+                                                                        paramValues[pDefName] = numValue;
+                                                                        if (p.name !== pDefName) {
+                                                                          paramValues[p.name] = numValue;
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                });
+                                                                
+                                                                // Calculate the new value
+                                                                const calculatedValue = calculateFormula(paramDef.formula, paramValues);
+                                                                
+                                                                if (calculatedValue !== null) {
+                                                                  const calculatedStr = String(calculatedValue);
+                                                                  field.onChange(calculatedStr);
+                                                                  // Mark as manually edited again so it won't auto-update
+                                                                  setManuallyEditedParams(prev => new Set(prev).add(paramKey));
+                                                                }
+                                                              }}
+                                                              title="Recalculate value from formula"
+                                                            >
+                                                              <RefreshCw className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                                            </Button>
+                                                          )}
+                                                        </div>
+                                                      </TooltipTrigger>
+                                                      {hasFormula && (
+                                                        <TooltipContent 
+                                                          className="max-w-xs bg-popover border border-border shadow-lg"
+                                                          side="right"
+                                                          sideOffset={10}
+                                                          align="start"
+                                                        >
+                                                          <div className="space-y-2 text-popover-foreground">
+                                                            <p className="font-semibold text-sm">Calculated Parameter</p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                              This value is calculated using the formula:
+                                                            </p>
+                                                            <p className="text-sm font-mono bg-muted dark:bg-muted/50 text-foreground p-2 rounded border border-border">
+                                                              {paramDef.name} = {paramDef.formula}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                              Click the refresh icon to recalculate.
+                                                            </p>
+                                                          </div>
+                                                        </TooltipContent>
+                                                      )}
+                                                    </Tooltip>
+                                                  </TooltipProvider>
                                                 </FormControl>
                                                 <FormMessage />
                                               </FormItem>
