@@ -4,7 +4,7 @@ import { Timestamp } from "firebase/firestore";
 import { getReportById } from "@/utils/firestore/reports";
 import { getPatient, type PatientWithId } from "@/utils/firestore/patients";
 import { getUser, type User } from "@/utils/firestore/users";
-import { toTitleCase } from "@/lib/utils";
+import { toTitleCase, sortParametersByConstantsOrder } from "@/lib/utils";
 import { Loader2, FileText } from "lucide-react";
 import type { ReportWithId, TestResult } from "@/utils/firestore/reports";
 
@@ -151,18 +151,8 @@ export default function PublicReportPage() {
         })
       : reportDate;
 
-  const tests = Object.entries(report.tests || {}).filter(([_, test]) => {
-    const parameters = Object.entries(test.parameters || {}).filter(
-      ([_, paramResult]) => {
-        return (
-          paramResult.value !== null &&
-          paramResult.value !== undefined &&
-          paramResult.value !== ""
-        );
-      }
-    );
-    return parameters.length > 0;
-  });
+  // Show all tests, even if they have no values (will show "-" for missing parameters)
+  const tests = Object.entries(report.tests || {});
 
   const rangeStr = (paramResult: any) => {
     const range = paramResult.range;
@@ -209,15 +199,8 @@ export default function PublicReportPage() {
       >
         {tests.map(([testId, test]: [string, TestResult], testIndex) => {
           const isLastTest = testIndex === tests.length - 1;
-          const parameters = Object.entries(test.parameters || {}).filter(
-            ([_, paramResult]) => {
-              return (
-                paramResult.value !== null &&
-                paramResult.value !== undefined &&
-                paramResult.value !== ""
-              );
-            }
-          );
+          const allParams = test.parameters || {};
+          const parameters = sortParametersByConstantsOrder(testId, allParams);
 
           const hasTestComment = test.comment && test.comment.trim() !== "";
 

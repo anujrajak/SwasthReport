@@ -1,4 +1,4 @@
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { forwardRef } from "react";
 import {
   SidebarGroup,
@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { menuItems } from "@/lib/constants/menu-items";
+import { mainMenuItems, manageMenuItems, manageMenuTitle } from "@/lib/constants/menu-items";
 import { cn } from "@/lib/utils";
 
 // Create a forwardRef wrapper for Link to work with asChild
@@ -26,13 +26,12 @@ export function SidebarNavigation() {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Navigation</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {menuItems.map((item) => {
+          {mainMenuItems.map((item) => {
             const isActive = pathname === item.url;
             return (
-            <SidebarMenuItem key={item.title}>
+              <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild
                   isActive={isActive}
@@ -47,10 +46,43 @@ export function SidebarNavigation() {
                         isActive ? "text-[var(--icon-active)]" : "text-[var(--icon-inactive)]"
                       )}
                     />
-                  <span>{item.title}</span>
+                    <span>{item.title}</span>
                   </SidebarLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+      
+      <SidebarGroupLabel className="text-xs text-muted-foreground px-2 py-1.5">
+        {manageMenuTitle}
+      </SidebarGroupLabel>
+      
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {manageMenuItems.map((item) => {
+            const isActive = pathname === item.url;
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                >
+                  <SidebarLink
+                    to={item.url}
+                    className="flex items-center gap-2 w-full"
+                  >
+                    <item.icon 
+                      className={cn(
+                        "h-4 w-4 transition-colors",
+                        isActive ? "text-[var(--icon-active)]" : "text-[var(--icon-inactive)]"
+                      )}
+                    />
+                    <span>{item.title}</span>
+                  </SidebarLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             );
           })}
         </SidebarMenu>

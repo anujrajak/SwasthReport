@@ -1,9 +1,9 @@
-import { LayoutDashboard, Users, FileText } from "lucide-react";
+import { LayoutDashboard, Users, FileText, Settings } from "lucide-react";
 import { PiHospitalFill } from "react-icons/pi";
 import { TbReportMedical } from "react-icons/tb";
 import { MdSupportAgent } from "react-icons/md";
 
-export const menuItems = [
+export const mainMenuItems = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
@@ -24,6 +24,9 @@ export const menuItems = [
     icon: FileText,
     url: "/dashboard/reports",
   },
+];
+
+export const manageMenuItems = [
   {
     title: "Lab Details",
     icon: PiHospitalFill,
@@ -35,3 +38,6 @@ export const menuItems = [
     url: "/dashboard/support",
   },
 ];
+
+export const manageMenuTitle = "Manage";
+export const manageMenuIcon = Settings;

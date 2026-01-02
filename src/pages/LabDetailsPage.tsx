@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -113,6 +112,7 @@ export default function LabDetailsPage() {
             pathologistName: data.pathologistName || "",
             pathologistTitle: data.pathologistTitle || "",
             pathologistSignature: data.pathologistSignature || "",
+            labLogo: data.labLogo || "",
           });
         }
       } catch (error) {
@@ -377,7 +377,7 @@ export default function LabDetailsPage() {
                     <FormItem>
                       <FormLabel>Lab Logo/Image (Optional)</FormLabel>
                       <FormControl>
-                        <>
+                        <div className="space-y-2">
                           <Input
                             type="file"
                             accept="image/*"
@@ -387,24 +387,17 @@ export default function LabDetailsPage() {
                             <div className="mt-2">
                               <img
                                 src={field.value}
-                                alt="Lab Logo Preview"
-                                className="max-w-[150px] max-h-[150px] border rounded-md"
+                                alt="Lab Logo preview"
+                                className="max-w-xs border rounded p-2 bg-white object-contain"
+                                style={{ maxHeight: "100px" }}
                               />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => field.onChange("")}
-                                className="mt-1 text-red-500 hover:text-red-600"
-                              >
-                                Remove Logo
-                              </Button>
                             </div>
                           )}
-                        </>
+                        </div>
                       </FormControl>
                       <FormDescription>
-                        Upload lab logo/image for report header (image, max 2MB).
+                        Upload lab logo/image for report header (image, max
+                        2MB). Will be saved as base64.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -517,9 +510,12 @@ export default function LabDetailsPage() {
               </div>
 
               <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4">Pathologist Details</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Pathologist Details
+                </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Once saved, these fields will be disabled. To modify, contact support.
+                  Once saved, these fields will be disabled. To modify, contact
+                  support.
                 </p>
               </div>
 
@@ -610,7 +606,9 @@ export default function LabDetailsPage() {
                             accept="image/*"
                             onChange={handleSignatureUpload}
                             disabled={!!userData?.pathologistName}
-                            className={userData?.pathologistName ? "bg-muted" : ""}
+                            className={
+                              userData?.pathologistName ? "bg-muted" : ""
+                            }
                           />
                           {field.value && (
                             <div className="mt-2">
@@ -625,7 +623,8 @@ export default function LabDetailsPage() {
                         </div>
                       </FormControl>
                       <FormDescription>
-                        Upload pathologist signature image (optional). Will be saved as base64.
+                        Upload pathologist signature image (optional). Will be
+                        saved as base64.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -651,8 +650,9 @@ export default function LabDetailsPage() {
                     <div className="space-y-1 leading-none">
                       <FormLabel>Enable header and footer</FormLabel>
                       <FormDescription>
-                        When enabled, header and footer will be shown on PDF reports.
-                        When disabled, custom top and bottom margins will be used instead.
+                        When enabled, header and footer will be shown on PDF
+                        reports. When disabled, custom top and bottom margins
+                        will be used instead.
                       </FormDescription>
                     </div>
                   </FormItem>
@@ -674,11 +674,14 @@ export default function LabDetailsPage() {
                             max="100"
                             placeholder="15"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormDescription>
-                          Top margin in millimeters for PDF reports when header/footer is disabled.
+                          Top margin in millimeters for PDF reports when
+                          header/footer is disabled.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -698,11 +701,14 @@ export default function LabDetailsPage() {
                             max="100"
                             placeholder="15"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormDescription>
-                          Bottom margin in millimeters for PDF reports when header/footer is disabled.
+                          Bottom margin in millimeters for PDF reports when
+                          header/footer is disabled.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -734,7 +740,8 @@ export default function LabDetailsPage() {
                         bottomMargin: userData.bottomMargin ?? 15,
                         pathologistName: userData.pathologistName || "",
                         pathologistTitle: userData.pathologistTitle || "",
-                        pathologistSignature: userData.pathologistSignature || "",
+                        pathologistSignature:
+                          userData.pathologistSignature || "",
                       });
                     }
                   }}

@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Users, FileText, Calendar, Eye, CheckCircle, Clock, Loader2, Activity } from "lucide-react";
 import { toast } from "sonner";
-import { toTitleCase } from "@/lib/utils";
+import { toTitleCase, sortParametersByConstantsOrder } from "@/lib/utils";
 import type { ReportWithId, TestResult } from "@/utils/firestore/reports";
 import type { PatientWithId } from "@/utils/firestore/patients";
 import type { User } from "@/utils/firestore/users";
@@ -699,15 +699,8 @@ export default function DashboardPage() {
                     {/* Test Results Section - matching PDF format */}
                     {Object.entries(selectedReport.report.tests || {}).map(
                       ([testId, test]: [string, TestResult]) => {
-                        const testParams = Object.entries(
-                          test.parameters || {}
-                        ).filter(([_, paramResult]) => {
-                          return (
-                            paramResult.value !== null &&
-                            paramResult.value !== undefined &&
-                            paramResult.value !== ""
-                          );
-                        });
+                        const allParams = test.parameters || {};
+                        const testParams = sortParametersByConstantsOrder(testId, allParams);
 
                         if (testParams.length === 0) return null;
 

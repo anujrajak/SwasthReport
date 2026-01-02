@@ -93,12 +93,12 @@ export function DashboardHeader() {
   };
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-      <div className="flex items-center gap-2">
+    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 overflow-hidden">
+      <div className="flex items-center gap-2 shrink-0">
         <SidebarTrigger className="-ml-1" />
         <div className="h-4 w-px bg-border" />
       </div>
-      <div className="relative flex-1 md:max-w-sm">
+      <div className="relative flex-1 min-w-0 md:max-w-sm">
         <Popover open={open} onOpenChange={setOpen}>
           <div className="relative">
             <Search className="text-[var(--icon-inactive)] pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 z-10" />
@@ -107,7 +107,7 @@ export function DashboardHeader() {
                 <Input
                   type="search"
                   placeholder="Search patients..."
-                  className="h-9 w-full bg-background pl-8 w-[400px]"
+                  className="h-9 w-full bg-background pl-8 max-w-full"
                   value={searchTerm}
                   onChange={handleInputChange}
                   onFocus={() => {
@@ -120,7 +120,7 @@ export function DashboardHeader() {
             </PopoverAnchor>
           </div>
           <PopoverContent 
-            className="w-[400px] p-0" 
+            className="w-[var(--radix-popover-trigger-width)] sm:w-[400px] p-0" 
             align="start"
             sideOffset={4}
             onOpenAutoFocus={(e) => e.preventDefault()}
@@ -171,7 +171,7 @@ export function DashboardHeader() {
           </PopoverContent>
         </Popover>
       </div>
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-2 shrink-0">
         <ThemeSwitcher />
         <Button
           variant="outline"

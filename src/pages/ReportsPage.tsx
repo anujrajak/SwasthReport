@@ -52,7 +52,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
-import { toTitleCase } from "@/lib/utils";
+import { toTitleCase, sortParametersByConstantsOrder } from "@/lib/utils";
 
 export default function ReportsPage() {
   const { user: firebaseUser, loading: authLoading } = useAuth();
@@ -548,15 +548,8 @@ export default function ReportsPage() {
                               testIndex: number
                             ) => {
                               const isLastTest = testIndex === tests.length - 1;
-                              const parameters = Object.entries(
-                                test.parameters || {}
-                              ).filter(([_, paramResult]) => {
-                                return (
-                                  paramResult.value !== null &&
-                                 paramResult.value !== undefined && 
-                                  paramResult.value !== ""
-                                );
-                        });
+                              const allParams = test.parameters || {};
+                              const parameters = sortParametersByConstantsOrder(testId, allParams);
 
                       const rangeStr = (paramResult: any) => {
                         const range = paramResult.range;
@@ -1170,15 +1163,10 @@ export default function ReportsPage() {
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                  {Object.entries(test.parameters || {})
-                                    .filter(([_, paramResult]) => {
-                                    return (
-                                      paramResult.value !== null &&
-                                             paramResult.value !== undefined && 
-                                      paramResult.value !== ""
-                                    );
-                                    })
-                                  .map(
+                                  {sortParametersByConstantsOrder(
+                                    testId,
+                                    test.parameters || {}
+                                  ).map(
                                     ([paramName, paramResult], paramIndex) => {
                                       const rangeStr =
                                         typeof paramResult.range === "string"
@@ -1598,15 +1586,8 @@ export default function ReportsPage() {
                   {/* Test Results Section - matching PDF format */}
                   {Object.entries(selectedReport.report.tests || {}).map(
                     ([testId, test]: [string, TestResult]) => {
-                      const testParams = Object.entries(
-                        test.parameters || {}
-                      ).filter(([_, paramResult]) => {
-                        return (
-                          paramResult.value !== null &&
-                          paramResult.value !== undefined &&
-                          paramResult.value !== ""
-                        );
-                      });
+                      const allParams = test.parameters || {};
+                      const testParams = sortParametersByConstantsOrder(testId, allParams);
 
                       if (testParams.length === 0) return null;
 
