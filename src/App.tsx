@@ -11,6 +11,7 @@ import MakeReportPage from './pages/MakeReportPage'
 import LabDetailsPage from './pages/LabDetailsPage'
 import ReportsPage from './pages/ReportsPage'
 import SupportPage from './pages/SupportPage'
+import PublicReportPage from './pages/PublicReportPage'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
       >
         <Routes>
           <Route path="/" element={<LoginPage />} />
+          <Route path="/report/:reportId" element={<PublicReportPage />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="patients" element={<PatientsPage />} />

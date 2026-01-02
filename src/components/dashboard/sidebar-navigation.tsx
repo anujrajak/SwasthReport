@@ -32,7 +32,7 @@ export function SidebarNavigation() {
           {menuItems.map((item) => {
             const isActive = pathname === item.url;
             return (
-              <SidebarMenuItem key={item.title}>
+            <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild
                   isActive={isActive}
@@ -41,11 +41,16 @@ export function SidebarNavigation() {
                     to={item.url}
                     className="flex items-center gap-2 w-full"
                   >
-                    <item.icon />
-                    <span>{item.title}</span>
+                    <item.icon 
+                      className={cn(
+                        "h-4 w-4 transition-colors",
+                        isActive ? "text-[var(--icon-active)]" : "text-[var(--icon-inactive)]"
+                      )}
+                    />
+                  <span>{item.title}</span>
                   </SidebarLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             );
           })}
         </SidebarMenu>

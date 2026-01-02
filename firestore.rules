@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection - users can read/write their own document
+    // Also allow public read for lab details needed in reports
+    match /users/{userId} {
+      allow read: if true; // Public read access for report display
+      allow write: if isOwner(userId);
+    }
+    
+    // Patients collection - users can read/write their own patients
+    // Also allow public read for patient details needed in reports
+    match /users/{userId}/patients/{patientId} {
+      allow read: if true; // Public read access for report display
+      allow write: if isOwner(userId);
+    }
+    
+    // Reports collection - users can read/write their own reports
+    // Also allow public read for sharing reports via URL
+    match /users/{userId}/patients/{patientId}/reports/{reportId} {
+      allow read: if true; // Public read access for report sharing
+      allow write: if isOwner(userId);
+    }
+    
+    // Allow collectionGroup queries on reports (needed for getReportById)
+    // This allows querying across all reports collections
+    match /{path=**}/reports/{reportId} {
+      allow read: if true; // Public read access for collectionGroup queries
+    }
+  }
+}
+

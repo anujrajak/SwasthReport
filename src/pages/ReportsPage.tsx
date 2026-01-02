@@ -35,6 +35,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -48,9 +49,8 @@ import {
   Printer,
   Plus,
   CheckCircle,
+  Clock,
 } from "lucide-react";
-import { GrDocumentVerified } from "react-icons/gr";
-import { FaClock } from "react-icons/fa";
 import { Timestamp } from "firebase/firestore";
 import { toTitleCase } from "@/lib/utils";
 
@@ -264,10 +264,10 @@ export default function ReportsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Reports</CardTitle>
-              <CardDescription>
-                All pathology reports sorted by date (newest first)
-              </CardDescription>
+          <CardTitle>Reports</CardTitle>
+          <CardDescription>
+            All pathology reports sorted by date (newest first)
+          </CardDescription>
             </div>
             <Button onClick={() => router("/dashboard/make-report")}>
               <Plus className="mr-2 h-4 w-4" />
@@ -343,23 +343,17 @@ export default function ReportsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            {report.verified === true ? (
-                              <>
-                                <GrDocumentVerified className="h-4 w-4 text-green-600" />
-                                <span className="text-green-600 font-medium">
-                                  Verified
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <FaClock className="h-4 w-4 text-yellow-600" />
-                                <span className="text-yellow-600 font-medium">
-                                  Pending
-                                </span>
-                              </>
-                            )}
-                          </div>
+                          {report.verified === true ? (
+                            <Badge variant="success">
+                              <CheckCircle className="h-3 w-3" />
+                              Verified
+                            </Badge>
+                          ) : (
+                            <Badge variant="warning">
+                              <Clock className="h-3 w-3" />
+                              Pending
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
                           <Button
@@ -436,7 +430,7 @@ export default function ReportsPage() {
               {selectedReport?.report && selectedReport?.patient && (
                 <>
                   {!selectedReport.report.verified ? (
-                    <Button
+                <Button
                       className="w-full sm:w-auto"
                       onClick={handleVerifyReport}
                     >
@@ -446,40 +440,40 @@ export default function ReportsPage() {
                   ) : (
                     <Button
                       className="w-full sm:w-auto"
-                      onClick={() => {
+                  onClick={() => {
                         if (!selectedReport?.report || !selectedReport?.patient)
                           return;
-
+                    
                         const tests = Object.entries(
                           selectedReport.report.tests || {}
                         );
-                        const lab = selectedReport.lab;
-                        const patient = selectedReport.patient;
-                        const report = selectedReport.report;
+                    const lab = selectedReport.lab;
+                    const patient = selectedReport.patient;
+                    const report = selectedReport.report;
                         const enableHeaderFooter =
                           lab?.enableHeaderFooter ?? true;
                         const topMargin = lab?.topMargin ?? 15;
                         const bottomMargin = lab?.bottomMargin ?? 15;
-
+                    
                         const reportDate =
                           report.date instanceof Timestamp
-                            ? report.date.toDate().toLocaleDateString("en-US", {
-                                year: "numeric",
+                      ? report.date.toDate().toLocaleDateString("en-US", {
+                          year: "numeric",
                                 month: "short",
-                                day: "numeric",
+                          day: "numeric",
                               }) +
                               " " +
                               report.date.toDate().toLocaleTimeString("en-US", {
                                 hour: "2-digit",
                                 minute: "2-digit",
                                 hour12: true,
-                              })
+                        })
                             : new Date(report.date).toLocaleDateString(
                                 "en-US",
                                 {
-                                  year: "numeric",
+                          year: "numeric",
                                   month: "short",
-                                  day: "numeric",
+                          day: "numeric",
                                 }
                               ) +
                               " " +
@@ -546,7 +540,7 @@ export default function ReportsPage() {
                                 })
                             : reportDate;
 
-                        // Generate HTML for each test (one per page)
+                    // Generate HTML for each test (one per page)
                         const testPages = tests
                           .map(
                             (
@@ -559,23 +553,23 @@ export default function ReportsPage() {
                               ).filter(([_, paramResult]) => {
                                 return (
                                   paramResult.value !== null &&
-                                  paramResult.value !== undefined &&
+                                 paramResult.value !== undefined && 
                                   paramResult.value !== ""
                                 );
-                              });
+                        });
 
-                              const rangeStr = (paramResult: any) => {
-                                const range = paramResult.range;
-                                if (typeof range === "string") return range;
-                                if (typeof range === "object") {
+                      const rangeStr = (paramResult: any) => {
+                        const range = paramResult.range;
+                        if (typeof range === "string") return range;
+                        if (typeof range === "object") {
                                   return (
                                     range[patient.gender.toLowerCase()] ||
-                                    range["normal"] ||
+                                 range["normal"] ||
                                     "N/A"
                                   );
-                                }
-                                return "N/A";
-                              };
+                        }
+                        return "N/A";
+                      };
 
                               const isOutOfRange = (
                                 value: any,
@@ -593,23 +587,23 @@ export default function ReportsPage() {
                                 const rangeMatch = rangeStr.match(
                                   /(\d+\.?\d*)\s*[-–—]\s*(\d+\.?\d*)/
                                 );
-                                if (rangeMatch) {
-                                  const min = parseFloat(rangeMatch[1]);
-                                  const max = parseFloat(rangeMatch[2]);
-                                  return numValue < min || numValue > max;
-                                }
-                                return false;
-                              };
+                        if (rangeMatch) {
+                          const min = parseFloat(rangeMatch[1]);
+                          const max = parseFloat(rangeMatch[2]);
+                          return numValue < min || numValue > max;
+                        }
+                        return false;
+                      };
 
                               const paramsRows = parameters
                                 .map(
                                   ([paramName, paramResult]: [string, any]) => {
-                                    const rStr = rangeStr(paramResult);
+                        const rStr = rangeStr(paramResult);
                                     const outOfRange = isOutOfRange(
                                       paramResult.value,
                                       rStr
                                     );
-                                    return `
+                        return `
                           <tr>
                             <td style="width: 35%; font-family: 'Open Sans', Arial, sans-serif;"><div style="color: #1e293b;">${paramName}</div></td>
                             <td style="${
@@ -630,7 +624,7 @@ export default function ReportsPage() {
                               const hasTestComment =
                                 test.comment && test.comment.trim() !== "";
 
-                              return `
+                      return `
                         <div class="print-page"${
                           isLastTest
                             ? ' style="page-break-after: avoid !important;"'
@@ -802,13 +796,13 @@ export default function ReportsPage() {
                           }
                         </div>
                       `;
-                            }
+                    }
                           )
                           .join("");
 
                         const printWindow = window.open("", "_blank");
-                        if (printWindow) {
-                          printWindow.document.write(`
+                    if (printWindow) {
+                      printWindow.document.write(`
                         <!DOCTYPE html>
                         <html>
                           <head>
@@ -911,17 +905,17 @@ export default function ReportsPage() {
                           </body>
                         </html>
                       `);
-                          printWindow.document.close();
-                          setTimeout(() => {
-                            printWindow.print();
-                          }, 250);
-                        }
-                      }}
-                      className="gap-2"
-                    >
-                      <Printer className="h-4 w-4" />
-                      Print PDF
-                    </Button>
+                      printWindow.document.close();
+                      setTimeout(() => {
+                        printWindow.print();
+                      }, 250);
+                    }
+                  }}
+                  className="gap-2"
+                >
+                  <Printer className="h-4 w-4" />
+                  Print PDF
+                </Button>
                   )}
                 </>
               )}
@@ -966,14 +960,14 @@ export default function ReportsPage() {
                                 )}
                                 {selectedReport.lab?.labContacts &&
                                   selectedReport.lab.labContacts.length > 0 && (
-                                    <div className="mt-2 text-xs text-muted-foreground">
+                                  <div className="mt-2 text-xs text-muted-foreground">
                                       <p>
                                         {selectedReport.lab.labContacts.join(
                                           " | "
                                         )}
                                       </p>
-                                    </div>
-                                  )}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -984,7 +978,7 @@ export default function ReportsPage() {
                           <div className="grid grid-cols-2 gap-8">
                             {/* Left side - Patient Details */}
                             <div className="space-y-2 text-sm">
-                              <div>
+                            <div>
                                 <span className="text-muted-foreground">
                                   Name :{" "}
                                 </span>
@@ -994,35 +988,35 @@ export default function ReportsPage() {
                                     : ""}
                                   {selectedReport.patient.name}
                                 </span>
-                              </div>
-                              <div>
+                            </div>
+                            <div>
                                 <span className="text-muted-foreground">
                                   Age :{" "}
                                 </span>
                                 <span className="font-medium">
                                   {selectedReport.patient.age} Years
                                 </span>
-                              </div>
-                              <div>
+                            </div>
+                            <div>
                                 <span className="text-muted-foreground">
                                   Sex :{" "}
                                 </span>
                                 <span className="font-medium capitalize">
                                   {selectedReport.patient.gender}
                                 </span>
-                              </div>
-                              <div>
+                            </div>
+                            <div>
                                 <span className="text-muted-foreground">
                                   Ref. By :{" "}
                                 </span>
                                 <span className="font-semibold">
                                   {selectedReport.report.doctor || "SELF"}
                                 </span>
-                              </div>
                             </div>
+                              </div>
                             {/* Right side - Dates */}
                             <div className="space-y-2 text-sm text-right">
-                              <div>
+                            <div>
                                 <span className="text-muted-foreground">
                                   Registered:{" "}
                                 </span>
@@ -1032,9 +1026,9 @@ export default function ReportsPage() {
                                     ? selectedReport.report.registeredDate
                                         .toDate()
                                         .toLocaleDateString("en-US", {
-                                          year: "numeric",
+                                      year: "numeric",
                                           month: "short",
-                                          day: "numeric",
+                                      day: "numeric",
                                         }) +
                                       " " +
                                       selectedReport.report.registeredDate
@@ -1043,15 +1037,15 @@ export default function ReportsPage() {
                                           hour: "2-digit",
                                           minute: "2-digit",
                                           hour12: true,
-                                        })
+                                    })
                                     : selectedReport.report.createdAt instanceof
                                       Timestamp
                                     ? selectedReport.report.createdAt
                                         .toDate()
                                         .toLocaleDateString("en-US", {
-                                          year: "numeric",
+                                      year: "numeric",
                                           month: "short",
-                                          day: "numeric",
+                                      day: "numeric",
                                         }) +
                                       " " +
                                       selectedReport.report.createdAt
@@ -1092,10 +1086,10 @@ export default function ReportsPage() {
                                         hour: "2-digit",
                                         minute: "2-digit",
                                         hour12: true,
-                                      })}
-                                </span>
-                              </div>
-                              <div>
+                                    })}
+                              </span>
+                            </div>
+                            <div>
                                 <span className="text-muted-foreground">
                                   Collected :{" "}
                                 </span>
@@ -1157,10 +1151,10 @@ export default function ReportsPage() {
 
                         {/* Test Results Section - One test per page */}
                         <div className="print-test">
-                          <div className="overflow-x-auto">
+                            <div className="overflow-x-auto">
                             <Table className="w-full">
-                              <TableHeader>
-                                <TableRow>
+                                <TableHeader>
+                                  <TableRow>
                                   <TableHead className="w-[35%] font-semibold">
                                     Test
                                   </TableHead>
@@ -1173,17 +1167,17 @@ export default function ReportsPage() {
                                   <TableHead className="w-[20%] font-semibold">
                                     Unit
                                   </TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {Object.entries(test.parameters || {})
-                                  .filter(([_, paramResult]) => {
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {Object.entries(test.parameters || {})
+                                    .filter(([_, paramResult]) => {
                                     return (
                                       paramResult.value !== null &&
-                                      paramResult.value !== undefined &&
+                                             paramResult.value !== undefined && 
                                       paramResult.value !== ""
                                     );
-                                  })
+                                    })
                                   .map(
                                     ([paramName, paramResult], paramIndex) => {
                                       const rangeStr =
@@ -1238,7 +1232,7 @@ export default function ReportsPage() {
                                               </div>
                                             ) : (
                                               <div className="text-muted-foreground">
-                                                {paramName}
+                                            {paramName}
                                               </div>
                                             )}
                                           </TableCell>
@@ -1259,8 +1253,8 @@ export default function ReportsPage() {
                                       );
                                     }
                                   )}
-                              </TableBody>
-                            </Table>
+                                </TableBody>
+                              </Table>
                           </div>
                         </div>
 
@@ -1278,7 +1272,7 @@ export default function ReportsPage() {
                               <p>
                                 {selectedReport.lab.labContacts.join(" | ")}
                               </p>
-                            )}
+                          )}
                         </div>
                       </div>
                     )
@@ -1305,7 +1299,7 @@ export default function ReportsPage() {
                       }}
                     >
                       <div className="flex gap-4 items-center">
-                        <div className="flex items-center justify-start">
+                      <div className="flex items-center justify-start">
                           {selectedReport.lab?.labLogo ? (
                             <img
                               src={selectedReport.lab.labLogo}
@@ -1325,9 +1319,9 @@ export default function ReportsPage() {
                               >
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                               </svg>
-                            </div>
-                          )}
                         </div>
+                          )}
+                      </div>
                         <div className="flex flex-col items-start text-left">
                           <h1
                             className="text-lg sm:text-xl md:text-2xl font-bold m-0"
@@ -1370,7 +1364,7 @@ export default function ReportsPage() {
                                   {selectedReport.lab.labContacts.join(" | ")}
                                 </span>
                               </p>
-                            )}
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1383,7 +1377,7 @@ export default function ReportsPage() {
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 text-[0.75rem] mb-2">
                       <div className="flex flex-col gap-2">
-                        <div>
+                    <div>
                           <span style={{ color: "#000000" }}>Name : </span>
                           <span
                             className="font-semibold text-sm sm:text-base"
@@ -1394,8 +1388,8 @@ export default function ReportsPage() {
                               : ""}
                             {toTitleCase(selectedReport.patient.name)}
                           </span>
-                        </div>
-                        <div>
+                    </div>
+                    <div>
                           <span style={{ color: "#000000" }}>Age : </span>
                           <span
                             className="font-medium"
@@ -1403,8 +1397,8 @@ export default function ReportsPage() {
                           >
                             {selectedReport.patient.age} Years
                           </span>
-                        </div>
-                        <div>
+                    </div>
+                    <div>
                           <span style={{ color: "#000000" }}>Sex : </span>
                           <span
                             className="font-medium capitalize"
@@ -1412,8 +1406,8 @@ export default function ReportsPage() {
                           >
                             {selectedReport.patient.gender}
                           </span>
-                        </div>
-                        <div>
+                    </div>
+                    <div>
                           <span style={{ color: "#000000" }}>Ref. By : </span>
                           <span
                             className="font-semibold"
@@ -1421,10 +1415,10 @@ export default function ReportsPage() {
                           >
                             {selectedReport.report.doctor || "SELF"}
                           </span>
-                        </div>
+                    </div>
                       </div>
                       <div className="flex flex-col gap-2 text-left sm:text-right">
-                        <div>
+                      <div>
                           <span style={{ color: "#000000" }}>Registered: </span>
                           <span
                             className="font-medium"
@@ -1496,8 +1490,8 @@ export default function ReportsPage() {
                                   hour12: true,
                                 })}
                           </span>
-                        </div>
-                        <div>
+                      </div>
+                    <div>
                           <span style={{ color: "#000000" }}>Collected : </span>
                           <span
                             className="font-medium"
@@ -1508,9 +1502,9 @@ export default function ReportsPage() {
                               ? selectedReport.report.collectedDate
                                   .toDate()
                                   .toLocaleDateString("en-US", {
-                                    year: "numeric",
+                              year: "numeric",
                                     month: "short",
-                                    day: "numeric",
+                              day: "numeric",
                                   }) +
                                 " " +
                                 selectedReport.report.collectedDate
@@ -1519,14 +1513,14 @@ export default function ReportsPage() {
                                     hour: "2-digit",
                                     minute: "2-digit",
                                     hour12: true,
-                                  })
+                            })
                               : selectedReport.report.date instanceof Timestamp
                               ? selectedReport.report.date
                                   .toDate()
                                   .toLocaleDateString("en-US", {
-                                    year: "numeric",
+                              year: "numeric",
                                     month: "short",
-                                    day: "numeric",
+                              day: "numeric",
                                   }) +
                                 " " +
                                 selectedReport.report.date
@@ -1550,11 +1544,11 @@ export default function ReportsPage() {
                                   hour: "2-digit",
                                   minute: "2-digit",
                                   hour12: true,
-                                })}
-                          </span>
-                        </div>
+                            })}
+                      </span>
+                    </div>
                         {selectedReport.report.reportedDate && (
-                          <div>
+                    <div>
                             <span style={{ color: "#000000" }}>
                               Reported :{" "}
                             </span>
@@ -1597,9 +1591,9 @@ export default function ReportsPage() {
                             </span>
                           </div>
                         )}
-                      </div>
                     </div>
                   </div>
+                </div>
 
                   {/* Test Results Section - matching PDF format */}
                   {Object.entries(selectedReport.report.tests || {}).map(
@@ -1632,7 +1626,7 @@ export default function ReportsPage() {
                               style={{ fontSize: "1rem", color: "#000000" }}
                             >
                               {test.name}
-                            </h2>
+                  </h2>
                             {test.category && (
                               <p
                                 className="text-[0.75rem] m-0 mt-2"
@@ -1641,7 +1635,7 @@ export default function ReportsPage() {
                                 {test.category}
                               </p>
                             )}
-                          </div>
+                        </div>
 
                           {/* Test Table */}
                           <div className="overflow-x-auto -mx-3 sm:mx-0 mb-4">
@@ -1781,7 +1775,7 @@ export default function ReportsPage() {
                                 })}
                               </tbody>
                             </table>
-                          </div>
+                </div>
 
                           {/* Test Comment */}
                           {hasTestComment && (
@@ -1793,7 +1787,7 @@ export default function ReportsPage() {
                                   color: "#1e293b",
                                 }}
                               >
-                                Comments
+                        Comments
                               </h3>
                               <p
                                 className="text-xs whitespace-pre-wrap"
@@ -1803,9 +1797,9 @@ export default function ReportsPage() {
                                 }}
                               >
                                 {test.comment}
-                              </p>
-                            </div>
-                          )}
+                      </p>
+                    </div>
+                )}
 
                           {/* Pathologist Signature - if verified */}
                           {selectedReport.report.verified &&
@@ -1848,8 +1842,8 @@ export default function ReportsPage() {
                                   )}
                                 </div>
                               </div>
-                            )}
-                        </div>
+                    )}
+                  </div>
                       );
                     }
                   )}
@@ -1880,7 +1874,7 @@ export default function ReportsPage() {
                         re-confirmed by repeat tests. This report is not valid
                         for medico-legal purpose.
                       </p>
-                    </div>
+                </div>
                   )}
                 </div>
               </>

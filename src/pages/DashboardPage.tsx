@@ -8,11 +8,11 @@ import { getPatient } from "@/utils/firestore/patients";
 import { getUser } from "@/utils/firestore/users";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Users, FileText, Calendar, Eye, CheckCircle, Clock, Loader2, Activity } from "lucide-react";
-import { FaClock } from "react-icons/fa";
 import { toast } from "sonner";
 import { toTitleCase } from "@/lib/utils";
 import type { ReportWithId, TestResult } from "@/utils/firestore/reports";
@@ -196,7 +196,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-6 w-6 text-[var(--icon-active)]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalPatients}</div>
@@ -209,7 +209,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <FileText className="h-6 w-6 text-[var(--icon-active)]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalReports}</div>
@@ -222,7 +222,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Calendar className="h-6 w-6 text-[var(--icon-active)]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalReports}</div>
@@ -243,8 +243,9 @@ export default function DashboardPage() {
               </CardDescription>
             </div>
             <Button
-              variant="outline"
+              variant="default"
               onClick={() => router("/dashboard/reports")}
+              className="bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90"
             >
               View All Reports
             </Button>
@@ -320,12 +321,10 @@ export default function DashboardPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <FaClock className="h-4 w-4 text-yellow-600" />
-                          <span className="text-yellow-600 font-medium">
-                            Pending
-                          </span>
-                        </div>
+                        <Badge variant="warning">
+                          <Clock className="h-3 w-3" />
+                          Pending
+                        </Badge>
                       </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <Button

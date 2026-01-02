@@ -79,7 +79,7 @@ export function UserMenu() {
                   {user?.email || "user@example.com"}
                 </span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <ChevronsUpDown className="ml-auto size-4 text-[var(--icon-inactive)]" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -116,16 +116,16 @@ export function UserMenu() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate("/dashboard/lab-details")}>
-              <User />
+              <User className="text-[var(--icon-active)]" />
               Profile
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate("/dashboard/support")}>
-              <MdSupportAgent />
+              <MdSupportAgent className="text-[var(--icon-active)]" />
               Support
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
-              <LogOut />
+              <LogOut className="text-[var(--icon-active)]" />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

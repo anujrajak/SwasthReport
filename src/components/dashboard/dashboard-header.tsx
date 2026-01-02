@@ -7,6 +7,7 @@ import { MdSupportAgent } from "react-icons/md";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import {
   Popover,
   PopoverContent,
@@ -100,7 +101,7 @@ export function DashboardHeader() {
       <div className="relative flex-1 md:max-w-sm">
         <Popover open={open} onOpenChange={setOpen}>
           <div className="relative">
-            <Search className="text-muted-foreground pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 z-10" />
+            <Search className="text-[var(--icon-inactive)] pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 z-10" />
             <PopoverAnchor asChild>
               <div className="relative">
                 <Input
@@ -144,7 +145,7 @@ export function DashboardHeader() {
                         onSelect={() => handleSelect(patient)}
                         className="flex items-center gap-2 cursor-pointer"
                       >
-                        <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <User className="h-4 w-4 text-[var(--icon-inactive)] shrink-0" />
                         <div className="flex flex-col min-w-0">
                           <span className="font-medium truncate">
                             {patient.title ? `${patient.title} ` : ""}
@@ -170,14 +171,15 @@ export function DashboardHeader() {
           </PopoverContent>
         </Popover>
       </div>
-      <div className="ml-auto">
+      <div className="ml-auto flex items-center gap-2">
+        <ThemeSwitcher />
         <Button
           variant="outline"
           size="sm"
           onClick={() => navigate("/dashboard/support")}
           className="gap-2"
         >
-          <MdSupportAgent className="h-4 w-4" />
+          <MdSupportAgent className="h-4 w-4 text-[var(--icon-active)]" />
           <span className="hidden sm:inline">Support</span>
         </Button>
       </div>

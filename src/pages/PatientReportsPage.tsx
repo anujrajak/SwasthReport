@@ -34,6 +34,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -46,6 +47,7 @@ import {
   Printer,
   Plus,
   CheckCircle,
+  Clock,
 } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
 import { toTitleCase } from "@/lib/utils";
@@ -264,6 +266,7 @@ export default function PatientReportsPage() {
                   <TableHead>Date</TableHead>
                   <TableHead>Doctor</TableHead>
                   <TableHead>Tests</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -299,6 +302,19 @@ export default function PatientReportsPage() {
                               : testNames}
                           </span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {report.verified === true ? (
+                          <Badge variant="success">
+                            <CheckCircle className="h-3 w-3" />
+                            Verified
+                          </Badge>
+                        ) : (
+                          <Badge variant="warning">
+                            <Clock className="h-3 w-3" />
+                            Pending
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Button

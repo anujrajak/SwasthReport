@@ -12,6 +12,8 @@ import {
   Timestamp,
   QueryDocumentSnapshot,
   DocumentData,
+  collectionGroup,
+  where,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { cleanFirestoreData } from "./clean-data";
@@ -105,6 +107,57 @@ export const getReport = async (
     id: reportDoc.id,
     ...(reportDoc.data() as Report),
   };
+};
+
+/**
+ * Get a report by reportId (searches across all users)
+ * Returns the report along with userId and patientId
+ * Note: This uses collectionGroup which requires proper Firestore indexes
+ */
+export const getReportById = async (
+  reportId: string
+): Promise<{
+  report: ReportWithId | null;
+  userId: string | null;
+  patientId: string | null;
+} | null> => {
+  try {
+    // Use collectionGroup to search across all reports collections
+    const reportsRef = collectionGroup(db, "reports");
+    const querySnapshot = await getDocs(reportsRef);
+
+    // Find the report with matching ID
+    const reportDoc = querySnapshot.docs.find((doc) => doc.id === reportId);
+
+    if (!reportDoc) {
+      return null;
+    }
+
+    const pathParts = reportDoc.ref.path.split("/");
+    
+    // Path structure: users/{userId}/patients/{patientId}/reports/{reportId}
+    const userIdIndex = pathParts.indexOf("users");
+    const patientIdIndex = pathParts.indexOf("patients");
+    
+    if (userIdIndex === -1 || patientIdIndex === -1) {
+      return null;
+    }
+
+    const userId = pathParts[userIdIndex + 1];
+    const patientId = pathParts[patientIdIndex + 1];
+
+    return {
+      report: {
+        id: reportDoc.id,
+        ...(reportDoc.data() as Report),
+      },
+      userId,
+      patientId,
+    };
+  } catch (error) {
+    console.error("Error fetching report by ID:", error);
+    return null;
+  }
 };
 
 /**

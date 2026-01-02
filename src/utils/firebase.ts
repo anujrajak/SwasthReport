@@ -30,17 +30,17 @@ if (missingVars.length > 0) {
   );
 } else {
   try {
-    const firebaseConfig = {
-      apiKey: requiredEnvVars.apiKey!,
-      authDomain: requiredEnvVars.authDomain!,
-      projectId: requiredEnvVars.projectId!,
-      storageBucket: requiredEnvVars.storageBucket!,
-      messagingSenderId: requiredEnvVars.messagingSenderId!,
-      appId: requiredEnvVars.appId!,
-      measurementId: requiredEnvVars.measurementId!,
-    };
+const firebaseConfig = {
+  apiKey: requiredEnvVars.apiKey!,
+  authDomain: requiredEnvVars.authDomain!,
+  projectId: requiredEnvVars.projectId!,
+  storageBucket: requiredEnvVars.storageBucket!,
+  messagingSenderId: requiredEnvVars.messagingSenderId!,
+  appId: requiredEnvVars.appId!,
+  measurementId: requiredEnvVars.measurementId!,
+};
 
-    // Initialize Firebase
+// Initialize Firebase
     firebaseApp = initializeApp(firebaseConfig);
     db = getFirestore(firebaseApp);
   } catch (error) {
